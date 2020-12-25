@@ -1,0 +1,14 @@
+enum ErrorCode {
+
+    SERVER_INTERNAL_ERROR = 500,
+    BAD_REQUEST = 400,
+    RESOURCE_NOT_FOUND_ERROR = 404,
+    UNAUTHORIZED_ERROR = 401,
+
+    
+    UNKNOWN_ERROR_CODE = 100,
+    JWT_TOKEN_INVALID = 101,
+    SHOP_EMPTY = 102
+}
+
+export default ErrorCode;

@@ -3,6 +3,8 @@ import { UnitOfWorkUseCase } from 'src/application/unitsofwork/UnitOfWorkUseCase
 import { createWrapper } from "next-redux-wrapper";
 import { Login } from 'src/domain/models/Login';
 import useStore from 'src/redux/store';
+import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
+import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 import {
     Avatar,
     Button,
@@ -96,11 +98,14 @@ const SingIn = () => {
     const dispatch = useDispatch();
     const traductor = useTraductor();
 
-   // useCheckTokenValid(ctx);
 
-     useEffect(() => {
- 
-       
+
+    useEffect(() => {
+
+        useCheckTokenValid(() => {
+            router.push("/home");
+        });
+
         /* if (props.location.state && props.location.state.username) {
  
              setUserName(props.location.state.username)
@@ -108,9 +113,9 @@ const SingIn = () => {
              // history.replace('', null);
  
          }*/
- 
-         // eslint-disable-next-line react-hooks/exhaustive-deps
-     }, []);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
 
     const cleanForm = () => {

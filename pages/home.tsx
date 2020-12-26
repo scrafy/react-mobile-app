@@ -50,7 +50,7 @@ const useStyles = makeStyles({
     }
 });
 
-const Home = ({ initialState }) => {
+const Home = (props: any) => {
 
     const traductor = useTraductor();
     const SideBarOptions = (perInfoCallback: Function, openIncidenceCallback: Function) => [
@@ -93,41 +93,52 @@ const Home = ({ initialState }) => {
     const [searchValue, setSearchValue] = useState('');
     const [navValue, setNavValue] = useState(50);
     const [drawer, setDrawer] = useState(false);
-    const [centerSelected, setCenterSelected] = useState({} as ICenter | null);
-    const [catalogSelected, setCatalogSelected] = useState({} as ICatalog | null);
+    const [centerSelected, setCenterSelected] = useState(null as ICenter | null);
+    const [catalogSelected, setCatalogSelected] = useState(null as ICatalog | null);
 
-    //  useCheckTokenInvalid();
 
     useEffect(() => {
 
-        
+        const { initialState } = props;
+
+        useCheckTokenInvalid(() => {
+            new UnitOfWorkService().getTokenService().removeToken();
+            router.push("/");
+        });
+
+        if (initialState.centers.selectedCenter !== null)
+            setCenterSelected(initialState.centers.selectedCenter);
+
+        if (initialState.catalogs.selectedCatalog !== null)
+            setCatalogSelected(initialState.catalogs.selectedCatalog);
+
         const localStorageService: ILocalStorageService = new UnitOfWorkService().getLocalStorageService();
         const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
         const userId: string | undefined = tokenService.getClaimFromToken("userId");
 
         if (!userId)
-            router.push('/index');
+            router.push('/');
 
         if (localStorageService.loadState() && localStorageService.loadState().userId && localStorageService.loadState().userId !== userId) {
 
             dispatch(cartActions(reduxErrorCallback).cleanCart);
             dispatch(centerActions(reduxErrorCallback).saveCenter(null));
             dispatch(catalogActions(reduxErrorCallback).saveCatalog(null));
+            setCenterSelected(null);
+            setCatalogSelected(null);
 
         } else {
 
-            const centerSelected: ICenter | null = localStorageService.loadState() && localStorageService.loadState().centers.selectedCenter;
-            const catalogSelected: ICatalog | null = localStorageService.loadState() && localStorageService.loadState().catalogs.selectedCatalog;
-            if (centerSelected !== null) {
-                setCenterSelected(centerSelected);
-                dispatch(centerActions(reduxErrorCallback).saveCenter(centerSelected));
-                dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(centerSelected.id));
+            if (initialState.centers.selectedCenter !== null) {
+
+                dispatch(centerActions(reduxErrorCallback).saveCenter(initialState.centers.selectedCenter));
+                dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(initialState.centers.selectedCenter.id));
             }
 
-            if (catalogSelected !== null) {
-                setCatalogSelected(catalogSelected);
-                dispatch(catalogActions(reduxErrorCallback).saveCatalog(catalogSelected));
-            }
+            if (initialState.catalogs.selectedCatalog !== null)
+
+                dispatch(catalogActions(reduxErrorCallback).saveCatalog(initialState.catalogs.selectedCatalog));
+
         }
         dispatch(userActions(reduxErrorCallback).saveUserId(new UnitOfWorkService().getTokenService().getClaimFromToken("userId")));
         dispatch(centerActions(reduxErrorCallback).getCenters);
@@ -329,13 +340,6 @@ const Home = ({ initialState }) => {
     )
 }
 
-
-/*Home.getServerSideProps = async (ctx: any) => {
-
-    const initialState: any = new UnitOfWorkService().getLocalStorageService().loadState() || {};
-    return { props: { initialState } };
-
-}*/
 
 Home.getInitialProps = async (ctx: any) => {
 

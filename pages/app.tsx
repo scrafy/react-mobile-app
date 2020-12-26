@@ -11,16 +11,19 @@ const App = ({ Component, pageProps }) => {
   return (
 
     <Provider store={store}>
-      <Component {...pageProps }/>
+      <Component {...pageProps} />
     </Provider>
   );
 
 };
 
-App.getServerSideProps  = async (ctx) => {
+App.getInitialProps = async (ctx) => {
 
-  const initialState: any = new UnitOfWorkService().getLocalStorageService().loadState() || {};
-  return { props:{initialState} };
+  if (!ctx.req) {
+    const initialState: any = new UnitOfWorkService().getLocalStorageService().loadState() || {};
+    return { initialState };
+  }
+
 }
 
 export default App;

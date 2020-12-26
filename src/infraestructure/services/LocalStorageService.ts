@@ -1,27 +1,17 @@
 import { ILocalStorageService } from "../interfaces/ILocalStorageService";
-import Cookies from 'universal-cookie';
+import { get, set } from "local-storage";
 
 export class LocalStorageService implements ILocalStorageService {
 
     saveState(state: any): void {
-
-        const cookies = new Cookies();
-        const myDate = new Date(new Date().getTime()+(1*24*60*60*1000));
-        console.log(state);
-        /* if (cookie.getJSON("state"))
-             cookie.remove("state", { expires: 1, domain:'localhost', path:'/' });*/
-
-        cookies.set("state", state, { expires: myDate, domain: 'localhost', path: '/' });
+        set("state", JSON.stringify(state));
     }
 
     loadState() {
 
-        const cookies = new Cookies();
-        const state: any = cookies.get("state");
-
-        if (state === null || state === undefined)
+        if ( get("state") === null || get("state") === undefined )
             return null
 
-        return state;
+        return JSON.parse(get("state"));
     }
 }

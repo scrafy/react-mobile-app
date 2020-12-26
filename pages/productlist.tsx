@@ -311,9 +311,8 @@ const ProductList = ({ initProducts, initCategories }) => {
                     setPagination(response.ServerData?.PaginationData);
 
                 } else {
-                    let aux: IProduct[] = _.cloneDeep(products);
-                    aux.push(...OrderProducts(updateProductsState(response.ServerData?.Data) || []));
-                    setProducts(aux);
+                    products.push(...OrderProducts(updateProductsState(response.ServerData?.Data) || []));
+                    setProducts([...products]);
                     setPagination(response.ServerData?.PaginationData);
                 }
             }
@@ -728,7 +727,7 @@ const ProductList = ({ initProducts, initCategories }) => {
 }
 
 
-ProductList.getInitialProps = async (ctx:any) => {
+ProductList.getInitialProps = async (ctx: any) => {
 
     const search: ISearchProduct = new SearchProduct();
     search.catalogId = ctx.query.catalog;

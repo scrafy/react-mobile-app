@@ -2,36 +2,32 @@ import { ITokenService } from 'src/infraestructure/interfaces';
 import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 
 
-export const useCheckTokenInvalid = (ctx: any, path: string = '/index') => {
+export const useCheckTokenInvalid = (callback:Function) => {
 
     const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
-
+    
     if (!tokenService.isTokenValid()) {
-        ctx.res.writeHead(302, { Location: '/home' })
-        ctx.res.end()
+        callback();
         return
     }
 
     const interval = setInterval(() => {
         if (!tokenService.isTokenValid()) {
             clearInterval(interval);
-            ctx.res.writeHead(302, { Location: '/home' })
-            ctx.res.end()
+            callback();
         }
     }, 500);
 
 };
 
 
-export const useCheckTokenValid = (ctx: any, path: string = '/home') => {
-
+export const useCheckTokenValid = (callback:Function) => {
     
     const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
-
+    
     if (tokenService.isTokenValid()) {
 
-        ctx.res.writeHead(302, { Location: '/home' })
-        ctx.res.end()
+        callback();
         return;
     }
     return;

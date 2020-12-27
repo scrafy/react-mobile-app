@@ -1,12 +1,10 @@
 import React from 'react';
 import useStore from 'src/redux/store';
 import { Provider } from 'react-redux';
-import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
-
 
 const App = ({ Component, pageProps }) => {
 
-  const store = useStore(pageProps.initialState)
+  const store = useStore()
 
   return (
 
@@ -17,12 +15,9 @@ const App = ({ Component, pageProps }) => {
 
 };
 
-App.getInitialProps = async (ctx) => {
+App.getInitialProps = async (ctx: any) => {
 
-  if (!ctx.req) {
-    const initialState: any = new UnitOfWorkService().getLocalStorageService().loadState() || {};
-    return { initialState };
-  }
+  return {};
 
 }
 

@@ -1,9 +1,9 @@
 import { HttpClient } from "./HttpClient";
 import { TokenService } from "./TokenService";
-import { LocalStorageService } from "./LocalStorageService";
+import { StateService } from "./StateService";
 
 export {
     HttpClient,
     TokenService,
-    LocalStorageService
+    StateService
 }

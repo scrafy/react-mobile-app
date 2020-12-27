@@ -1,5 +1,5 @@
-import { IHttpClient, ITokenService, ILocalStorageService } from "../interfaces";
-import { HttpClient, TokenService, LocalStorageService } from "../services";
+import { IHttpClient, ITokenService, IStateService } from "../interfaces";
+import { HttpClient, TokenService, StateService } from "../services";
 
 
 
@@ -7,7 +7,14 @@ export class UnitOfWorkService {
 
     private httpClientService!: IHttpClient;
     private tokenService!: ITokenService;
-    private localStorageService!: ILocalStorageService;
+    private stateService!: IStateService;
+    private conf:any;
+
+    constructor(conf: any = undefined) {
+
+        this.conf = conf;
+
+    }
 
 
     getHttpClientService = (singleton: boolean = false): IHttpClient => {
@@ -32,14 +39,14 @@ export class UnitOfWorkService {
         return new TokenService();
     }
 
-    getLocalStorageService = (singleton: boolean = false): ILocalStorageService => {
+    getStateService = (singleton: boolean = false): IStateService => {
 
-        if (this.localStorageService === null || this.localStorageService === undefined)
-            this.localStorageService = new LocalStorageService();
+        if (this.stateService === null || this.stateService === undefined)
+            this.stateService = new StateService();
 
         if (singleton)
-            return this.localStorageService;
+            return this.stateService;
 
-        return new LocalStorageService();
+        return new StateService();
     }
 }

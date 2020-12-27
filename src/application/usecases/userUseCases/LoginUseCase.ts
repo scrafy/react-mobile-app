@@ -20,7 +20,7 @@ export class LoginUseCase extends BaseUseCase implements ILoginUseCase {
         const resp = await this.userRepository.login(login)
         
         if ( resp.ServerData?.Data ) 
-            this.tokenService.writeTokenToLocalStorage(resp.ServerData?.Data)
+            this.tokenService.writeToken(resp.ServerData?.Data)
         
         return resp;
     }

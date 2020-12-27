@@ -9,17 +9,35 @@ export class HttpClient implements IHttpClient {
 
     private readonly tokenService: ITokenService;
     private readonly axios: any;
+    private conf: any;
 
-    constructor(tokenService: ITokenService) {
+    constructor( tokenService: ITokenService, conf: any = undefined ) {
 
         this.tokenService = tokenService;
+        this.conf = conf;
+        let headers: any = {};
+        let token: string | undefined = this.conf && this.conf.token ? this.conf.token : undefined;
 
-        this.axios = axios.create({
+        if (token)
 
-            headers: {
+            headers = {
+
+                "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
                 "Accept": "application/json"
             }
+
+        else
+
+            headers = {
+
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+
+        this.axios = axios.create({
+
+            headers
         });
 
     }
@@ -35,9 +53,9 @@ export class HttpClient implements IHttpClient {
     }
 
     async getJsonResponse(url: string, headers: Map<string, string> | null, addToken: boolean | null): Promise<any> {
-        
+
         let headersObject: { [k: string]: string } = {};
-        const token: string | undefined = this.tokenService.readTokenFromLocalStorage();
+        const token: string | null = this.tokenService.readToken();
 
         if (!headers)
             headers = new Map<string, string>();
@@ -63,7 +81,7 @@ export class HttpClient implements IHttpClient {
             });
 
             if (resp.headers['x-session-token'])
-                this.tokenService.writeTokenToLocalStorage(resp.headers['x-session-token']);
+                this.tokenService.writeToken(resp.headers['x-session-token']);
 
             return resp;
         }
@@ -75,7 +93,7 @@ export class HttpClient implements IHttpClient {
     async delete(url: string, headers: Map<string, string> | null, addToken: boolean | null): Promise<any> {
 
         let headersObject: { [k: string]: string } = {};
-        const token: string | undefined = this.tokenService.readTokenFromLocalStorage();
+        const token: string | null = this.tokenService.readToken();
 
         if (!headers)
             headers = new Map<string, string>();
@@ -100,7 +118,7 @@ export class HttpClient implements IHttpClient {
         });
 
         if (resp.headers['x-session-token'])
-            this.tokenService.writeTokenToLocalStorage(resp.headers['x-session-token']);
+            this.tokenService.writeToken(resp.headers['x-session-token']);
 
         return resp;
     }
@@ -108,7 +126,7 @@ export class HttpClient implements IHttpClient {
     async postJsonData(url: string, body: any, headers: Map<string, string> | null, addToken: boolean | null): Promise<any> {
 
         let headersObject: { [k: string]: string } = {};
-        const token: string | undefined = this.tokenService.readTokenFromLocalStorage();
+        const token: string | null = this.tokenService.readToken();
 
         if (!headers)
             headers = new Map<string, string>();
@@ -133,7 +151,7 @@ export class HttpClient implements IHttpClient {
         });
 
         if (resp.headers['x-session-token'])
-            this.tokenService.writeTokenToLocalStorage(resp.headers['x-session-token']);
+            this.tokenService.writeToken(resp.headers['x-session-token']);
 
 
         return resp;
@@ -143,7 +161,7 @@ export class HttpClient implements IHttpClient {
     async postNoBody(url: string, headers: Map<string, string> | null, addToken: boolean | null): Promise<any> {
 
         let headersObject: { [k: string]: string } = {};
-        const token: string | undefined = this.tokenService.readTokenFromLocalStorage();
+        const token: string | null = this.tokenService.readToken();
 
         if (!headers)
             headers = new Map<string, string>();
@@ -168,7 +186,7 @@ export class HttpClient implements IHttpClient {
         });
 
         if (resp.headers['x-session-token'])
-            this.tokenService.writeTokenToLocalStorage(resp.headers['x-session-token']);
+            this.tokenService.writeToken(resp.headers['x-session-token']);
 
         return resp;
     }

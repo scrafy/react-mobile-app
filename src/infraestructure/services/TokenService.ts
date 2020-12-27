@@ -1,19 +1,24 @@
-import { get, set, remove } from "local-storage";
-import { ITokenService } from "../interfaces";
+import { IStateService, ITokenService } from "../interfaces";
 import { JwtTokenError } from "../../domain/exceptions";
 import { ErrorCode } from "../../domain/enums";
+import { UnitOfWorkService } from "../unitsofwork";
 const jwt = require('jsonwebtoken');
 
 
 export class TokenService implements ITokenService {
 
+    private service: IStateService;
+
+    constructor() {
+        this.service = new UnitOfWorkService().getStateService();
+    }
 
     getPayload = (): any | undefined => {
 
         let payload;
 
         if (this.isTokenValid()) {
-            payload = jwt.verify(this.readTokenFromLocalStorage(), process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 });
+            payload = jwt.verify(this.service.loadToken(), process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 });
             return payload;
         }
         return undefined;
@@ -21,17 +26,17 @@ export class TokenService implements ITokenService {
 
     removeToken = (): void => {
 
-        remove("token")
+        this.service.saveToken(null);
     }
 
-    readTokenFromLocalStorage = (): string | undefined => get("token");
+    readToken = (): string | null => this.service.loadToken();
 
-    writeTokenToLocalStorage = (token: string): void => {
+    writeToken = (token: string): void => {
 
         try {
 
             jwt.verify(token, process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 })
-            set("token", token);
+            this.service.saveToken(token);
         }
         catch (error) {
 
@@ -42,7 +47,7 @@ export class TokenService implements ITokenService {
 
     isTokenValid = (): boolean => {
 
-        const token = get("token");
+        const token = this.service.loadToken();
         if (!token)
             return false;
 
@@ -59,9 +64,9 @@ export class TokenService implements ITokenService {
     getClaimFromToken = (claim: string): string | undefined => {
 
         try {
-            
+
             let payload;
-            payload = jwt.verify(this.readTokenFromLocalStorage(), process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 });
+            payload = jwt.verify(this.service.loadToken(), process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 });
             const value = payload[claim]
             if (!value)
                 throw new JwtTokenError(ErrorCode.JWT_TOKEN_INVALID, `It was not possible to get ${claim} claim from token`);

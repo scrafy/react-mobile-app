@@ -16,6 +16,7 @@ import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import useCheckProductCart, { ICheckProductCallback, TypeMessageCheckProduct } from 'src/hooks/CheckProductCart';
 import cartActions from 'src/redux/cart/actions';
 import notify from 'src/redux/notifications/actions';
+import { IState } from 'src/infraestructure/interfaces';
 import useDeepCompareEffect from 'use-deep-compare-effect'
 import useCheckCenterAndCatalogSelected from 'src/hooks/CheckCenterAndCatalogSelected';
 import { useTraductor } from 'src/hooks/Traductor';
@@ -23,7 +24,7 @@ import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 import { createWrapper } from 'next-redux-wrapper';
 import { useRouter } from 'next/router'
 import useStore from 'src/redux/store';
-
+const { decode } = require('url-encode-decode')
 
 const useStyles = makeStyles({
     root: {
@@ -337,6 +338,12 @@ const ProductList = ({ initProducts, initCategories }) => {
     //#region USE_EFFECTS
 
     useEffect(() => {
+        useCheckTokenInvalid(() => {
+
+            new UnitOfWorkUseCase().getTokenService().removeToken();
+            router.push("/");
+
+        });
         setProducts(updateProductsState(initProducts));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
@@ -726,23 +733,19 @@ const ProductList = ({ initProducts, initCategories }) => {
     )
 }
 
+export async function getServerSideProps({ req }) {
 
-ProductList.getInitialProps = async (ctx: any) => {
-
+    const state:IState = JSON.parse(decode((req.headers["cookie"] as string).split("=")[1]));
+    let products: IServerResponse<IProduct[]>;
+    let categories: IServerResponse<ICategory[]>;
     const search: ISearchProduct = new SearchProduct();
-    search.catalogId = ctx.query.catalog;
-    search.centerId = ctx.query.center;
-
-    try {
-        const products: IServerResponse<IProduct[]> = await new UnitOfWorkUseCase().getSearchProductUseCase().searchProducts(search, 1);
-        const categories: IServerResponse<ICategory[]> = await new UnitOfWorkUseCase().getCategoriesUseCase().getCategories(ctx.query.catalog, ctx.query.center);
-        return { initProducts: _.orderBy(products.ServerData?.Data, ['name'], ['asc']), initCategories: categories.ServerData?.Data };
-    }
-    catch (error) {
-
-        //generar error y direccionar
-    }
+    search.catalogId = state.selectedCatalog.id;
+    search.centerId = state.selectedCenter.id;
+    products = await new UnitOfWorkUseCase().getSearchProductUseCase().searchProducts(search, 1);
+    categories = await new UnitOfWorkUseCase().getCategoriesUseCase().getCategories(search.catalogId, search.centerId);
+    return { initProducts: _.orderBy(products.ServerData?.Data, ['name'], ['asc']), initCategories: categories.ServerData?.Data };
 }
+
 
 export default createWrapper(useStore).withRedux(ProductList);
 

@@ -15,7 +15,7 @@ import AppBar from 'src/presentation/components/appBar/AppBar';
 import Drawer from 'src/presentation/components/drawer/TemporaryDrawer';
 import CartTooltip from 'src/presentation/components/tooltip/CartTooltip';
 import SimpleSelect from 'src/presentation/components/dropdowns/SimpleSelect';
-import { ILocalStorageService, ITokenService } from 'src/infraestructure/interfaces';
+import { IState, IStateService, ITokenService } from 'src/infraestructure/interfaces';
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import notify from 'src/redux/notifications/actions';
 import cartActions from 'src/redux/cart/actions';
@@ -33,6 +33,7 @@ import _ from 'lodash';
 import { useTraductor } from 'src/hooks/Traductor';
 import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 import { createWrapper } from 'next-redux-wrapper';
+const { decode } = require('url-encode-decode')
 
 const useStyles = makeStyles({
     button: {
@@ -82,6 +83,7 @@ const Home = (props: any) => {
         }
     ];
 
+    const stateService: IStateService = new UnitOfWorkService().getStateService();
     const classes = useStyles();
     const router = useRouter();
     const dispatch = useDispatch();
@@ -99,27 +101,25 @@ const Home = (props: any) => {
 
     useEffect(() => {
 
-        const { initialState } = props;
-
+        const { selectedCenter, selectedCatalog, _userId } = props;
         useCheckTokenInvalid(() => {
             new UnitOfWorkService().getTokenService().removeToken();
             router.push("/");
         });
 
-        if (initialState.centers.selectedCenter !== null)
-            setCenterSelected(initialState.centers.selectedCenter);
+        if (selectedCenter !== null)
+            setCenterSelected(selectedCenter);
 
-        if (initialState.catalogs.selectedCatalog !== null)
-            setCatalogSelected(initialState.catalogs.selectedCatalog);
+        if (selectedCatalog !== null)
+            setCatalogSelected(selectedCatalog);
 
-        const localStorageService: ILocalStorageService = new UnitOfWorkService().getLocalStorageService();
         const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
         const userId: string | undefined = tokenService.getClaimFromToken("userId");
 
         if (!userId)
             router.push('/');
 
-        if (localStorageService.loadState() && localStorageService.loadState().userId && localStorageService.loadState().userId !== userId) {
+        if (userId !== _userId) {
 
             dispatch(cartActions(reduxErrorCallback).cleanCart);
             dispatch(centerActions(reduxErrorCallback).saveCenter(null));
@@ -129,15 +129,15 @@ const Home = (props: any) => {
 
         } else {
 
-            if (initialState.centers.selectedCenter !== null) {
+            if (selectedCenter !== null) {
 
-                dispatch(centerActions(reduxErrorCallback).saveCenter(initialState.centers.selectedCenter));
-                dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(initialState.centers.selectedCenter.id));
+                dispatch(centerActions(reduxErrorCallback).saveCenter(selectedCenter));
+                dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(selectedCenter.id));
             }
 
-            if (initialState.catalogs.selectedCatalog !== null)
+            if (selectedCatalog !== null)
 
-                dispatch(catalogActions(reduxErrorCallback).saveCatalog(initialState.catalogs.selectedCatalog));
+                dispatch(catalogActions(reduxErrorCallback).saveCatalog(selectedCatalog));
 
         }
         dispatch(userActions(reduxErrorCallback).saveUserId(new UnitOfWorkService().getTokenService().getClaimFromToken("userId")));
@@ -168,6 +168,7 @@ const Home = (props: any) => {
             const selectedCenter: ICenter | undefined = centers.find((center: ICenter) => center.id === parseInt(event.target.value));
             if (selectedCenter) {
 
+                stateService.saveCenter(selectedCenter);
                 dispatch(centerActions(reduxErrorCallback).saveCenter(selectedCenter));
                 setCenterSelected(selectedCenter);
             }
@@ -175,6 +176,7 @@ const Home = (props: any) => {
             dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(parseInt(event.target.value)));
         }
         else {
+            stateService.saveCenter(null);
             dispatch(centerActions(reduxErrorCallback).saveCenter(null));
             dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(null));
             setCenterSelected(null);
@@ -188,6 +190,7 @@ const Home = (props: any) => {
         if (parseInt(event.target.value) > 0 && parseInt(event.target.value) < 1000) {
             const selectedCatalog: ICatalog | undefined = centerCatalogs.find((catalog: ICatalog) => catalog.id === parseInt(event.target.value));
             if (selectedCatalog) {
+                stateService.saveCatalog(selectedCatalog);
                 dispatch(catalogActions(reduxErrorCallback).saveCatalog(selectedCatalog));
                 setCatalogSelected(selectedCatalog);
             }
@@ -341,12 +344,10 @@ const Home = (props: any) => {
 }
 
 
-Home.getInitialProps = async (ctx: any) => {
+export async function getServerSideProps(ctx: any) {
 
-    const initialState: any = new UnitOfWorkService().getLocalStorageService().loadState() || {};
-    return { initialState };
-
+    const state:IState = JSON.parse(decode((ctx.req.headers["cookie"] as string).split("=")[1]));
+    return { props: { selectedCenter: state.selectedCenter, selectedCatalog: state.selectedCatalog, _userId: state.userId }};
 }
-
 
 export default createWrapper(useStore).withRedux(Home);

@@ -5,7 +5,7 @@ import useStore from 'src/redux/store/index';
 
 
 export default (errorCallback: (error: string) => void): any => {
-
+    
     return {
 
         saveProductToCart: (product: IProduct) => (dispatch: any) => {
@@ -27,7 +27,6 @@ export default (errorCallback: (error: string) => void): any => {
                     else
                         products[index] = product;
                 }
-
                 dispatch({
                     type: Actions.SAVE_PRODUCT_TO_CART,
                     payload: products

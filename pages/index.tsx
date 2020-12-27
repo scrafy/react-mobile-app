@@ -1,10 +1,10 @@
 import { IServerResponse } from 'src/domain/interfaces'
-import { UnitOfWorkUseCase } from 'src/application/unitsofwork/UnitOfWorkUseCase'
+import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
+import { UnitOfWorkUseCase } from 'src/application/unitsofwork';
 import { createWrapper } from "next-redux-wrapper";
 import { Login } from 'src/domain/models/Login';
 import useStore from 'src/redux/store';
-import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
-import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
+import { ITokenService } from 'src/infraestructure/interfaces';
 import {
     Avatar,
     Button,
@@ -22,7 +22,7 @@ import notify from 'src/redux/notifications/actions';
 import { useDispatch } from 'react-redux';
 import { useTraductor } from 'src/hooks/Traductor';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/router';
 
 
 
@@ -88,8 +88,8 @@ const useStyles = makeStyles(() => createStyles({
 
 const SingIn = () => {
 
-    const [userName, setUserName] = useState('')
-    const [password, setPassword] = useState('')
+    const [userName, setUserName] = useState('adm_dev')
+    const [password, setPassword] = useState('Pedid0e#')
     const [validationErrors, setValidationErrors] = useState({} as any)
 
 
@@ -130,7 +130,12 @@ const SingIn = () => {
         login.username = userName;
         login.password = password;
         useCase.login(login).then((response: IServerResponse<string>) => {
+
+            const service: ITokenService = new UnitOfWorkService().getTokenService();
+            const userId: string = service.getClaimFromToken("userId");
+            new UnitOfWorkService().getStateService().saveUserId(userId);
             router.push('/home');
+
         }).catch((error) => {
 
             ErrorFormManager(error, (errorMessage: string, validationErrors?: any) => {
@@ -235,6 +240,12 @@ const SingIn = () => {
 
     );
 
+}
+
+export async function getStaticProps(context) {
+    return {
+        props: {}, // will be passed to the page component as props
+    }
 }
 
 export default createWrapper(useStore).withRedux(SingIn);

@@ -5,7 +5,7 @@ import Actions from "./enumActions";
 
 
 export default (errorCallback: (error: string) => void): any => {
-
+    
     return {
 
         getCenters: async (dispatch: any) => {

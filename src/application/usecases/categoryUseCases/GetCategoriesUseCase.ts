@@ -13,7 +13,11 @@ export class GetCategoriesUseCase extends BaseUseCase implements IGetCategoriesU
         this.categoryRepository = categoryRepository;
     }
 
-    getCategories(catalogId: number, centreId: number): Promise<IServerResponse<ICategory[]>> {
-        return this.categoryRepository.getCategories(catalogId, centreId);
+    getCategories(catalogId: number, centreId: number, token?: string): Promise<IServerResponse<ICategory[]>> {
+
+        if (token)
+            return this.categoryRepository.tokenGetCategories(catalogId, centreId, token);
+        else
+            return this.categoryRepository.getCategories(catalogId, centreId);
     }
 }

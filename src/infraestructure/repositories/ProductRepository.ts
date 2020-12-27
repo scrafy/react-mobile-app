@@ -26,6 +26,19 @@ export class ProductRepository extends BaseRepository implements IProductReposit
         }
     }
 
+    async tokenSearchProducts(search: ISearchProduct, page: number, token: string): Promise<IServerResponse<Array<IProduct>>> {
+
+        try {
+            const resp = await this.httpClient.tokenPostJsonData(`${process.env.REACT_APP_ENDPOINT_URL}/ProductDetails/${page}/search`, search, null, token);
+            return resp.data;
+        }
+        catch (error) {
+            if (error.response === undefined)
+                throw error;
+            throw this.checkServerErrorInResponse(error.response.data);
+        }
+    }
+
     async searchSubsetProducts(search: ISearchProduct, page: number): Promise<IServerResponse<Array<IProduct>>> {
 
         try {
@@ -65,7 +78,7 @@ export class ProductRepository extends BaseRepository implements IProductReposit
         }
     }
 
-    async getProductsFromFavoriteList(centerId:number): Promise<IServerResponse<Array<IProduct>>> {
+    async getProductsFromFavoriteList(centerId: number): Promise<IServerResponse<Array<IProduct>>> {
 
         try {
             const resp = await this.httpClient.getJsonResponse(`${process.env.REACT_APP_ENDPOINT_URL}/ProductDetails/${centerId}/favoriteproducts`, null, true);

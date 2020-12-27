@@ -735,15 +735,17 @@ const ProductList = ({ initProducts, initCategories }) => {
 
 export async function getServerSideProps({ req }) {
 
-    const state:IState = JSON.parse(decode((req.headers["cookie"] as string).split("=")[1]));
+    const state: IState = JSON.parse(decode((req.headers["cookie"] as string).split("=")[1]));
     let products: IServerResponse<IProduct[]>;
     let categories: IServerResponse<ICategory[]>;
     const search: ISearchProduct = new SearchProduct();
     search.catalogId = state.selectedCatalog.id;
     search.centerId = state.selectedCenter.id;
-    products = await new UnitOfWorkUseCase().getSearchProductUseCase().searchProducts(search, 1);
-    categories = await new UnitOfWorkUseCase().getCategoriesUseCase().getCategories(search.catalogId, search.centerId);
-    return { initProducts: _.orderBy(products.ServerData?.Data, ['name'], ['asc']), initCategories: categories.ServerData?.Data };
+    products = await new UnitOfWorkUseCase().getSearchProductUseCase().searchProducts(search, 1, state.token);
+    categories = await new UnitOfWorkUseCase().getCategoriesUseCase().getCategories(search.catalogId, search.centerId, state.token);
+    return {
+        props: { initProducts: _.orderBy(products.ServerData?.Data, ['name'], ['asc']), initCategories: categories.ServerData?.Data }
+    };
 }
 
 

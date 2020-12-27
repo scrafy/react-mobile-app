@@ -9,35 +9,17 @@ export class HttpClient implements IHttpClient {
 
     private readonly tokenService: ITokenService;
     private readonly axios: any;
-    private conf: any;
 
-    constructor( tokenService: ITokenService, conf: any = undefined ) {
+    constructor(tokenService: ITokenService) {
 
         this.tokenService = tokenService;
-        this.conf = conf;
-        let headers: any = {};
-        let token: string | undefined = this.conf && this.conf.token ? this.conf.token : undefined;
-
-        if (token)
-
-            headers = {
-
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            }
-
-        else
-
-            headers = {
-
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            }
 
         this.axios = axios.create({
 
-            headers
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
         });
 
     }
@@ -82,6 +64,38 @@ export class HttpClient implements IHttpClient {
 
             if (resp.headers['x-session-token'])
                 this.tokenService.writeToken(resp.headers['x-session-token']);
+
+            return resp;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+
+    async tokenGetJsonResponse(url: string, headers: Map<string, string> | null, token: string): Promise<any> {
+
+        let headersObject: { [k: string]: string } = {};
+
+        if (!headers)
+            headers = new Map<string, string>();
+
+        headers.set("Authorization", `Bearer ${token}`);
+
+
+        if (headers && headers.size > 0)
+            this.setHeaders(headers, headersObject)
+
+        try {
+            const resp = await this.axios.get(url, {
+                headers: headersObject,
+                validateStatus: function (status: number) {
+
+                    return status >= 200 && status < 300;
+                }
+            });
+
+            if (resp.headers['x-session-token'])
+                try { this.tokenService.writeToken(resp.headers['x-session-token']) } catch (error) { };
 
             return resp;
         }
@@ -152,6 +166,35 @@ export class HttpClient implements IHttpClient {
 
         if (resp.headers['x-session-token'])
             this.tokenService.writeToken(resp.headers['x-session-token']);
+
+
+        return resp;
+
+    }
+
+    async tokenPostJsonData(url: string, body: any, headers: Map<string, string> | null, token: string): Promise<any> {
+
+        let headersObject: { [k: string]: string } = {};
+
+
+        if (!headers)
+            headers = new Map<string, string>();
+
+        headers.set("Authorization", `Bearer ${token}`);
+
+        if (headers && headers.size > 0)
+            this.setHeaders(headers, headersObject)
+
+        const resp = await this.axios.post(url, body, {
+            headers: headersObject,
+            validateStatus: function (status: number) {
+
+                return status >= 200 && status < 300;
+            }
+        });
+
+        if (resp.headers['x-session-token'])
+            try { this.tokenService.writeToken(resp.headers['x-session-token']) } catch (error) { };
 
 
         return resp;

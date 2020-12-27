@@ -14,9 +14,12 @@ export class SearchProductUseCase extends BaseUseCase implements ISearchProducts
     }
 
 
-   searchProducts(search: ISearchProduct, page: number): Promise<IServerResponse<IProduct[]>> {
+    searchProducts(search: ISearchProduct, page: number, token?: string): Promise<IServerResponse<IProduct[]>> {
 
-        return this.productRepository.searchProducts(search, page);
+        if (token)
+            return this.productRepository.tokenSearchProducts(search, page, token);
+        else
+            return this.productRepository.searchProducts(search, page);
     }
 
 }

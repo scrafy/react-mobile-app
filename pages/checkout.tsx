@@ -77,7 +77,7 @@ const CheckOut = (props: any) => {
     const dispatch = useDispatch();
     const router = useRouter();
     const isDesktop = useMediaQuery('(min-width:900px)');
-  //  useCheckTokenInvalid();
+    //  useCheckTokenInvalid();
 
     //#endregion
 
@@ -172,6 +172,15 @@ const CheckOut = (props: any) => {
     //#region USE_EFFECTS
 
     useEffect(() => {
+
+        useCheckTokenInvalid(() => {
+
+            const service: UnitOfWorkService = new UnitOfWorkService();
+            service.getTokenService().removeToken();
+            service.getStateService().saveUserId(null);
+            router.push("/");
+
+        });
 
         GenerateOrder();
         if (supplier !== null && center !== null && productsCart.length > 0)

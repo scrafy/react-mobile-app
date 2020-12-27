@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Container, Grid, Button, TextField, useMediaQuery, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
@@ -14,6 +14,7 @@ import { useTraductor } from 'src/hooks/Traductor';
 import useStore from 'src/redux/store';
 import { createWrapper } from 'next-redux-wrapper';
 import { useRouter } from 'next/router'
+import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 
 const useStyles = makeStyles({
     button: {
@@ -32,7 +33,7 @@ const useStyles = makeStyles({
 
 const Incidence = () => {
 
-  // useCheckTokenInvalid();
+    // useCheckTokenInvalid();
 
     const traductor = useTraductor();
     const router = useRouter();
@@ -48,6 +49,21 @@ const Incidence = () => {
     const [snackMessage, setSnackMessage] = useState(traductor('incidencia_creada', { onlyfirst: true }))
     const [showMessage, setShowMessage] = useState(false)
 
+
+
+    useEffect(() => {
+
+        useCheckTokenInvalid(() => {
+
+            const service: UnitOfWorkService = new UnitOfWorkService();
+            service.getTokenService().removeToken();
+            service.getStateService().saveUserId(null);
+            router.push("/");
+
+        });
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const fileReader = (fileName: Blob) => {
 

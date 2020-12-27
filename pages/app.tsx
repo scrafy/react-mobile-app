@@ -1,6 +1,8 @@
 import React from 'react';
 import useStore from 'src/redux/store';
 import { Provider } from 'react-redux';
+const { decode } = require('url-encode-decode');
+import { IState } from 'src/infraestructure/interfaces';
 
 const App = ({ Component, pageProps }) => {
 
@@ -14,12 +16,6 @@ const App = ({ Component, pageProps }) => {
   );
 
 };
-
-App.getInitialProps = async (ctx: any) => {
-
-  return {};
-
-}
 
 export default App;
 

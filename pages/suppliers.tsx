@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useSelector } from 'react-redux';
 import { useMediaQuery } from '@material-ui/core';
 import { IProduct, ISeller } from 'src/domain/interfaces';
@@ -11,6 +11,7 @@ import { useRouter } from 'next/router'
 import useStore from 'src/redux/store';
 import { createWrapper } from 'next-redux-wrapper';
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
+import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 
 function Suppliers() {
 
@@ -23,6 +24,21 @@ function Suppliers() {
     const suppliers: ISeller[] = useSelector((state: any) => state.providers);
     const cartProducts: IProduct[] = useSelector((state: any) => state.cart.products);
 
+    useEffect(() => {
+
+        useCheckTokenInvalid(() => {
+            
+            const service:UnitOfWorkService = new UnitOfWorkService();
+            service.getTokenService().removeToken();
+            service.getStateService().saveUserId(null);
+            router.push("/");
+
+        });
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    
     return (
         <>
             <AppBar

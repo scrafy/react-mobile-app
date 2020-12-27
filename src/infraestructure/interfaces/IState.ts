@@ -1,4 +1,4 @@
-import { ICatalog, ICenter, IProduct, ISeller } from "src/domain/interfaces";
+import { ICatalog, ICenter } from "src/domain/interfaces";
 import ICart from "./ICart";
 
 export default interface IState {

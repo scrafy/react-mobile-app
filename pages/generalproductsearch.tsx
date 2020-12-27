@@ -93,10 +93,6 @@ const GeneralProductSearch = (props: any) => {
     ];
 
 
-    //useCheckTokenInvalid();
-
-
-
     //#endregion
 
     //#region USE_STATE
@@ -313,6 +309,15 @@ const GeneralProductSearch = (props: any) => {
     //#region USE_EFFECTS
 
     useEffect(() => {
+
+        useCheckTokenInvalid(() => {
+            
+            const service:UnitOfWorkService = new UnitOfWorkService();
+            service.getTokenService().removeToken();
+            service.getStateService().saveUserId(null);
+            router.push("/");
+
+        });
 
         if (centerSelected !== null) {
 

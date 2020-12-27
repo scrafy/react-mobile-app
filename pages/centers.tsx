@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useMediaQuery } from '@material-ui/core';
 import { ICenter, IProduct } from 'src/domain/interfaces';
@@ -11,10 +11,11 @@ import useStore from 'src/redux/store';
 import { createWrapper } from 'next-redux-wrapper';
 import { useRouter } from 'next/router'
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
+import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 
 function Centers() {
 
-   // useCheckTokenInvalid();
+
 
     const router = useRouter();
     const isDesktop = useMediaQuery('(min-width:900px)');
@@ -22,6 +23,21 @@ function Centers() {
 
     const centers: ICenter[] = useSelector((state: any) => state.centers.centers);
     const cartProducts: IProduct[] = useSelector((state: any) => state.cart.products);
+
+
+    useEffect(() => {
+
+        useCheckTokenInvalid(() => {
+            
+            const service:UnitOfWorkService = new UnitOfWorkService();
+            service.getTokenService().removeToken();
+            service.getStateService().saveUserId(null);
+            router.push("/");
+
+        });
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     return (
         <>

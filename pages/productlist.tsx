@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import _, { isNull, get } from 'lodash';
-import { ICategory, ICenter, IPaginationData, IProduct, IServerResponse, ISeller } from 'src/domain/interfaces'
-import { SearchProduct } from 'src/domain/models'
+import { ICategory, ICenter, IPaginationData, IProduct, IServerResponse, ISeller } from 'src/domain/interfaces';
+import { SearchProduct } from 'src/domain/models';
 import { Grid, List, FormControl, InputLabel, Select, MenuItem, Container } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import BottomNavigation from 'src/presentation/components/navigation/BottomNavigation';
 import AppBar from 'src/presentation/components/appBar/AppBar';
 import { Favorite, ShoppingCart, LocalOffer, AddShoppingCart } from '@material-ui/icons';
 import { UnitOfWorkUseCase } from 'src/application/unitsofwork/UnitOfWorkUseCase';
+import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 import { ICatalog, ISearchProduct } from 'src//domain/interfaces';
 import Product from 'src/presentation/components/product/Product';
 import ProductCard from 'src/presentation/components/product/ProductCard';
@@ -17,14 +18,14 @@ import useCheckProductCart, { ICheckProductCallback, TypeMessageCheckProduct } f
 import cartActions from 'src/redux/cart/actions';
 import notify from 'src/redux/notifications/actions';
 import { IState } from 'src/infraestructure/interfaces';
-import useDeepCompareEffect from 'use-deep-compare-effect'
-import useCheckCenterAndCatalogSelected from 'src/hooks/CheckCenterAndCatalogSelected';
+import useDeepCompareEffect from 'use-deep-compare-effect';
 import { useTraductor } from 'src/hooks/Traductor';
 import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 import { createWrapper } from 'next-redux-wrapper';
 import { useRouter } from 'next/router'
 import useStore from 'src/redux/store';
-const { decode } = require('url-encode-decode')
+const { decode } = require('url-encode-decode');
+
 
 const useStyles = makeStyles({
     root: {
@@ -55,7 +56,7 @@ const useStyles = makeStyles({
 const ProductList = ({ initProducts, initCategories }) => {
 
     //#region HOOKS
-    //useCheckTokenInvalid(ctx);
+
     //useCheckCenterAndCatalogSelected();
     const reduxErrorCallback = useReduxErrorCallback();
     const classes = useStyles();
@@ -220,13 +221,9 @@ const ProductList = ({ initProducts, initCategories }) => {
                 }
 
             })
-            if (found)
-                return _products;
-            else
-                return products;
+
         }
-        else
-            return products;
+        return _products;
     };
 
     const SearchFavorites = () => {
@@ -308,7 +305,7 @@ const ProductList = ({ initProducts, initCategories }) => {
 
                 if (page === 1) {
 
-                    setProducts(OrderProducts(updateProductsState(response.ServerData?.Data) || []));
+                    setProducts(OrderProducts(updateProductsState(response.ServerData?.Data || [])));
                     setPagination(response.ServerData?.PaginationData);
 
                 } else {
@@ -338,13 +335,16 @@ const ProductList = ({ initProducts, initCategories }) => {
     //#region USE_EFFECTS
 
     useEffect(() => {
+
         useCheckTokenInvalid(() => {
 
-            new UnitOfWorkUseCase().getTokenService().removeToken();
+            const service: UnitOfWorkService = new UnitOfWorkService();
+            service.getTokenService().removeToken();
+            service.getStateService().saveUserId(null);
             router.push("/");
 
         });
-        setProducts(updateProductsState(initProducts));
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
@@ -367,8 +367,10 @@ const ProductList = ({ initProducts, initCategories }) => {
 
     useDeepCompareEffect(() => {
 
-        if (productsInCart.length === 0)
+        if (productsInCart.length === 0) {
+            new UnitOfWorkService().getStateService().saveCart(null);
             dispatch(cartActions(reduxErrorCallback).cleanCart);
+        }
 
         AdminBottomNavIcon()
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -589,6 +591,7 @@ const ProductList = ({ initProducts, initCategories }) => {
             dispatch(cartActions(reduxErrorCallback).deleteProductFromCart(product));
             UpdateProducts(product);
         }
+        new UnitOfWorkService().getStateService().saveCart(useStore().getState().cart);
     }
 
     const handleScroll = (e: any) => {
@@ -735,17 +738,28 @@ const ProductList = ({ initProducts, initCategories }) => {
 
 export async function getServerSideProps({ req }) {
 
-    const state: IState = JSON.parse(decode((req.headers["cookie"] as string).split("=")[1]));
-    let products: IServerResponse<IProduct[]>;
-    let categories: IServerResponse<ICategory[]>;
-    const search: ISearchProduct = new SearchProduct();
-    search.catalogId = state.selectedCatalog.id;
-    search.centerId = state.selectedCenter.id;
-    products = await new UnitOfWorkUseCase().getSearchProductUseCase().searchProducts(search, 1, state.token);
-    categories = await new UnitOfWorkUseCase().getCategoriesUseCase().getCategories(search.catalogId, search.centerId, state.token);
-    return {
-        props: { initProducts: _.orderBy(products.ServerData?.Data, ['name'], ['asc']), initCategories: categories.ServerData?.Data }
-    };
+    try {
+        let state: IState = JSON.parse(decode((req.headers["cookie"] as string).split("=")[1]));
+        let products: IServerResponse<IProduct[]>;
+        let categories: IServerResponse<ICategory[]>;
+        const search: ISearchProduct = new SearchProduct();
+        search.catalogId = state.selectedCatalog.id;
+        search.centerId = state.selectedCenter.id;
+        products = await new UnitOfWorkUseCase().getSearchProductUseCase().searchProducts(search, 1, state.token);
+        categories = await new UnitOfWorkUseCase().getCategoriesUseCase().getCategories(search.catalogId, search.centerId, state.token);
+        return {
+            props: { initProducts: _.orderBy(products.ServerData?.Data, ['name'], ['asc']), initCategories: categories.ServerData?.Data }
+        };
+    }
+    catch (error) {
+        return {
+            redirect: {
+                destination: '/error',
+                permanent: false,
+            },
+        }
+    }
+
 }
 
 

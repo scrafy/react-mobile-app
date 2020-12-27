@@ -47,6 +47,15 @@ function HistoryOrders() {
 
     useEffect(() => {
 
+        useCheckTokenInvalid(() => {
+            
+            const service:UnitOfWorkService = new UnitOfWorkService();
+            service.getTokenService().removeToken();
+            service.getStateService().saveUserId(null);
+            router.push("/");
+
+        });
+
         new UnitOfWorkUseCase().getOrdersDoneUseCase().getOrdersDone().then((resp: IServerResponse<Array<IOrder>>) => {
 
             if (resp.ServerData?.Data && resp.ServerData?.Data.length === 0) {

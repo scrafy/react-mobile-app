@@ -1,5 +1,5 @@
 import { ICatalog, ICenter } from "src/domain/interfaces";
-import { IState } from ".";
+import { ICart, IState } from ".";
 
 
 export interface IStateService {
@@ -8,10 +8,10 @@ export interface IStateService {
     loadCenter(): ICenter | null;
     saveCatalog(catalog: ICatalog | null): void;
     loadCatalog(): ICatalog | null;
-    loadCart(): any | null;
-    saveCart(cart: any | null): any;
+    loadCart(): ICart | null;
+    saveCart(cart: ICart | null): void;
     loadUserId(): string | null;
-    saveUserId(userId: string): void;
+    saveUserId(userId: string | null): void;
     loadToken(): string | null;
     saveToken(token: string | null): void;
     saveState(state: IState): void;

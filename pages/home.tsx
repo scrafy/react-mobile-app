@@ -103,8 +103,12 @@ const Home = (props: any) => {
 
         const { selectedCenter, selectedCatalog, _userId } = props;
         useCheckTokenInvalid(() => {
-            new UnitOfWorkService().getTokenService().removeToken();
+            
+            const service:UnitOfWorkService = new UnitOfWorkService();
+            service.getTokenService().removeToken();
+            service.getStateService().saveUserId(null);
             router.push("/");
+
         });
 
         if (selectedCenter !== null)

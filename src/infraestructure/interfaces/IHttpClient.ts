@@ -8,6 +8,8 @@ export interface IHttpClient {
 
   postJsonData(url: string, body: any, headers: Map<string, string> | null, addToken: boolean | null): Promise<any>;
 
+  syncPostJsonData(url: string, body: any, headers: Map<string, string> | null, addToken: boolean | null): any;
+
   tokenPostJsonData(url: string, body: any, headers: Map<string, string> | null, token:string): Promise<any>;
 
   postNoBody(url: string, headers: Map<string, string> | null, addToken: boolean | null): Promise<any>

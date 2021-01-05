@@ -17,6 +17,7 @@ import { createWrapper } from 'next-redux-wrapper';
 import { useRouter } from 'next/router'
 import useStore from 'src/redux/store';
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
+import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 
 function HistoryOrders() {
 
@@ -25,7 +26,7 @@ function HistoryOrders() {
     const dispatch = useDispatch();
     const isDesktop = useMediaQuery('(min-width:900px)');
     const traductor = useTraductor();
-   // useCheckTokenInvalid();
+    const service:UnitOfWorkService = new UnitOfWorkService();
 
     const ordersNavOptions = [
         {
@@ -47,11 +48,9 @@ function HistoryOrders() {
 
     useEffect(() => {
 
-        useCheckTokenInvalid(() => {
+        useCheckTokenInvalid(() => {            
             
-            const service:UnitOfWorkService = new UnitOfWorkService();
-            service.getTokenService().removeToken();
-            service.getStateService().saveUserId(null);
+            service.getTokenService().removeToken();            
             router.push("/");
 
         });

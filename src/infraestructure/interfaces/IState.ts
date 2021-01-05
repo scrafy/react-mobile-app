@@ -5,7 +5,5 @@ export default interface IState {
 
     selectedCenter: ICenter | null,
     selectedCatalog: ICatalog | null,
-    cart: ICart,
-    userId: string | null,
-    token: string | null
+    cart: ICart    
 }

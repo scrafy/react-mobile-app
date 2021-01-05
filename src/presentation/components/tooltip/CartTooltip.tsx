@@ -1,7 +1,8 @@
 import React from 'react'
 import { Tooltip, makeStyles, IconButton } from '@material-ui/core';
 import { ShoppingCartOutlined } from '@material-ui/icons';
-import { useHistory } from 'react-router-dom';
+import { useRouter } from 'next/router';
+
 
 const useStyles = makeStyles({
     tooltip: ({ color, bottom }:any) => ({
@@ -21,7 +22,7 @@ function CartTooltip({
 }: any) {
 
     const classes = useStyles({color, bottom});
-    const history = useHistory();
+    const router = useRouter();
 
     return (
 
@@ -30,7 +31,7 @@ function CartTooltip({
             aria-label="add" 
             className={classes.tooltip}>
             <IconButton 
-                onClick={() => history.push('/checkout')}
+                onClick={() => router.push('/checkout')}
                 color="primary" 
                 aria-label="add to shopping cart"
             >

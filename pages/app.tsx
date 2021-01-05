@@ -1,12 +1,10 @@
-import React from 'react';
 import useStore from 'src/redux/store';
+import React from 'react';
 import { Provider } from 'react-redux';
-const { decode } = require('url-encode-decode');
-import { IState } from 'src/infraestructure/interfaces';
 
 const App = ({ Component, pageProps }) => {
 
-  const store = useStore()
+  const store = useStore();
 
   return (
 
@@ -16,6 +14,12 @@ const App = ({ Component, pageProps }) => {
   );
 
 };
+
+export async function getServerSideProps(ctx: any) {
+
+  return { props: {} };
+}
+
 
 export default App;
 

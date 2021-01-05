@@ -22,6 +22,7 @@ import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 import { useRouter } from 'next/router'
 import useStore from 'src/redux/store';
 import { createWrapper } from 'next-redux-wrapper';
+import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 
 const useStyles = makeStyles({
     root: {
@@ -314,7 +315,7 @@ const GeneralProductSearch = (props: any) => {
             
             const service:UnitOfWorkService = new UnitOfWorkService();
             service.getTokenService().removeToken();
-            service.getStateService().saveUserId(null);
+           // service.getStateService().saveUserId(null);
             router.push("/");
 
         });

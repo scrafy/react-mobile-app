@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { IAccountCentreCode, IEmail, IServerResponse, IUserProfile } from 'src/domain/interfaces'
 import { UnitOfWorkUseCase } from 'src/application/unitsofwork/UnitOfWorkUseCase'
-import { useHistory } from "react-router-dom";
 import {
     Avatar,
     Button,
@@ -11,13 +10,14 @@ import {
     Paper,
 } from '@material-ui/core';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-//import pedidoE_logo from '/pedidoE-72x72.png'
-import { useCheckTokenValid } from 'src/hooks/CheckTokenSession';
 import ErrorFormManager from 'src/presentation/helpers/ErrorFormManager'
 import notify from 'src/redux/notifications/actions';
 import { useDispatch } from 'react-redux';
+import useStore from 'src/redux/store';
 import { AccountCentreCode, Email } from 'src/domain/models';
 import { useTraductor } from 'src/hooks/Traductor';
+import { useRouter } from 'next/router';
+import { createWrapper } from 'next-redux-wrapper';
 
 
 const useStyles = makeStyles(() => createStyles({
@@ -77,19 +77,18 @@ const ValidateCenter = (props: any) => {
     const [validationErrors, setValidationErrors] = useState({} as any)
 
 
-    const history = useHistory();
+    const router = useRouter();
     const classes = useStyles();
     const dispatch = useDispatch();
     const traductor = useTraductor();
 
 
-    useCheckTokenValid();
 
 
     const onSubmit = () => {
 
         if (activationCode === '') {
-            setValidationErrors({ CentreCode: traductor('error_validacion_codigo_activacion', {onlyfirst:true}) })
+            setValidationErrors({ CentreCode: traductor('error_validacion_codigo_activacion', { onlyfirst: true }) })
             return;
         }
 
@@ -106,10 +105,10 @@ const ValidateCenter = (props: any) => {
                 data.email = email;
                 useCase.associateAccountToCentreCode(data).then((response: IServerResponse<IUserProfile>) => {
 
-                    history.push({
+                    router.push({
                         pathname: '/',
-                        state: { username: response.ServerData?.Data.username }
-                    })
+                        query: { username: response.ServerData?.Data.username }
+                    }, '')
 
 
                 }).catch((error) => {
@@ -135,13 +134,13 @@ const ValidateCenter = (props: any) => {
                 })
 
             } else {
-                history.push({
+                router.push({
                     pathname: '/singup',
-                    state: {
+                    query: {
                         activationcode: activationCode,
                         email
                     }
-                })
+                }, '')
             }
 
         }).catch(error => {
@@ -183,7 +182,7 @@ const ValidateCenter = (props: any) => {
                         component="h1"
                         variant="h5"
                     >
-                        {traductor('cod_activacion_titulo', {uppercase:true})}
+                        {traductor('cod_activacion_titulo', { uppercase: true })}
                     </Typography>
                     <Container component="main" maxWidth="xs">
                         <TextField
@@ -193,7 +192,7 @@ const ValidateCenter = (props: any) => {
                             required
                             fullWidth
                             id="activationcode"
-                            label={traductor('cod_activacion', {onlyfirst:true})}
+                            label={traductor('cod_activacion', { onlyfirst: true })}
                             name="CentreCode"
                             value={activationCode}
                             autoFocus
@@ -206,7 +205,7 @@ const ValidateCenter = (props: any) => {
                             required
                             fullWidth
                             name="email"
-                            label={traductor('email', {onlyfirst:true})}
+                            label={traductor('email', { onlyfirst: true })}
                             type="email"
                             id="email"
                             value={email}
@@ -221,7 +220,7 @@ const ValidateCenter = (props: any) => {
                             className={classes.submit}
                             onClick={onSubmit}
                         >
-                            {traductor('enviar', {uppercase:true})}
+                            {traductor('enviar', { uppercase: true })}
                         </Button>
 
                     </Container>
@@ -232,5 +231,11 @@ const ValidateCenter = (props: any) => {
 
 }
 
-export default ValidateCenter
+export async function getServerSideProps(ctx: any) {
+
+    return { props: {} };
+}
+
+
+export default createWrapper(useStore).withRedux(ValidateCenter);
 

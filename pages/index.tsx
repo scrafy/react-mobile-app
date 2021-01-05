@@ -4,7 +4,6 @@ import { UnitOfWorkUseCase } from 'src/application/unitsofwork';
 import { createWrapper } from "next-redux-wrapper";
 import { Login } from 'src/domain/models/Login';
 import useStore from 'src/redux/store';
-import { ITokenService } from 'src/infraestructure/interfaces';
 import {
     Avatar,
     Button,
@@ -21,9 +20,10 @@ import ErrorFormManager from 'src/presentation/helpers/ErrorFormManager'
 import notify from 'src/redux/notifications/actions';
 import { useDispatch } from 'react-redux';
 import { useTraductor } from 'src/hooks/Traductor';
+import useSetState from 'src/hooks/SetState';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-
+import { IStateService, ITokenService } from "src/infraestructure/interfaces";
 
 
 const useStyles = makeStyles(() => createStyles({
@@ -86,7 +86,7 @@ const useStyles = makeStyles(() => createStyles({
 
 
 
-const SingIn = () => {
+const SingIn = (props: any) => {
 
     const [userName, setUserName] = useState('adm_dev')
     const [password, setPassword] = useState('Pedid0e#')
@@ -97,6 +97,8 @@ const SingIn = () => {
     const classes = useStyles();
     const dispatch = useDispatch();
     const traductor = useTraductor();
+    const setState = useSetState();
+    const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
 
 
 
@@ -117,8 +119,32 @@ const SingIn = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+   /* useEffect(() => {
+
+        return () => {
+
+            setState().catch(error => {
+                router.push('/');
+                tokenService.writeToken(null);
+                dispatch(
+                    notify.showNotification({
+                        type: 'confirm',
+                        title: 'Error',
+                        message: error.message,
+                        onlyOk: true,
+                        textOk: 'OK',
+                    })
+                )
+
+            })
+
+        }
+
+    }, [])*/
+
 
     const cleanForm = () => {
+
         setUserName('');
         setPassword('');
     };
@@ -131,9 +157,6 @@ const SingIn = () => {
         login.password = password;
         useCase.login(login).then((response: IServerResponse<string>) => {
 
-            const service: ITokenService = new UnitOfWorkService().getTokenService();
-            const userId: string = service.getClaimFromToken("userId");
-            new UnitOfWorkService().getStateService().saveUserId(userId);
             router.push('/home');
 
         }).catch((error) => {
@@ -161,7 +184,10 @@ const SingIn = () => {
     }
 
     const onSignUp = (event: any) => {
-        router.push('/validatecenter')
+
+        router.push({
+            pathname: '/validatecenter'
+        });
     }
 
     return (
@@ -242,11 +268,11 @@ const SingIn = () => {
 
 }
 
-export async function getStaticProps(context) {
-    return {
-        props: {}, // will be passed to the page component as props
-    }
+export async function getServerSideProps(ctx: any) {
+
+    return { props: {} };
 }
+
 
 export default createWrapper(useStore).withRedux(SingIn);
 

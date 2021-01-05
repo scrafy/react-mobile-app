@@ -1,9 +1,8 @@
 import { JwtTokenError } from "../../domain/exceptions";
 import { IHttpClient, ITokenService } from "../interfaces";
 import { ErrorCode } from "../../domain/enums";
-
 const axios = require('axios');
-
+const fetch = require('sync-fetch')
 
 export class HttpClient implements IHttpClient {
 
@@ -24,7 +23,7 @@ export class HttpClient implements IHttpClient {
 
     }
 
-    setHeaders = (headers: Map<string, string>, conf: { [k: string]: string }): Object => {
+    private setHeaders = (headers: Map<string, string>, conf: { [k: string]: string }): Object => {
 
         headers.forEach((value: string, key: string) => {
 
@@ -169,6 +168,41 @@ export class HttpClient implements IHttpClient {
 
 
         return resp;
+
+    }
+
+    syncPostJsonData(url: string, body: any, headers: Map<string, string> | null, addToken: boolean | null): any {
+
+        let headersObject: { [k: string]: string } = {};
+        const token: string | null = this.tokenService.readToken();
+
+        if (!headers)
+            headers = new Map<string, string>();
+
+        if (addToken)
+
+            if (token)
+                headers.set("Authorization", `Bearer ${token}`);
+            else
+                throw new JwtTokenError(ErrorCode.JWT_TOKEN_INVALID, "It was not possible to read token from local storage");
+
+
+        if (headers && headers.size > 0)
+            this.setHeaders(headers, headersObject)
+
+        const resp = fetch(url, {
+            headers: headersObject,
+            method: 'POST',
+            body:JSON.stringify(body)
+
+        });
+        
+
+        if (resp.headers['x-session-token'])
+            this.tokenService.writeToken(resp.headers['x-session-token']);
+
+
+        return resp.json();
 
     }
 

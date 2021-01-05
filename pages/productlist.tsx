@@ -24,7 +24,8 @@ import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 import { createWrapper } from 'next-redux-wrapper';
 import { useRouter } from 'next/router'
 import useStore from 'src/redux/store';
-const { decode } = require('url-encode-decode');
+import { IStateService, ITokenService } from 'src/infraestructure/interfaces';
+import useSetState from 'src/hooks/SetState';
 
 
 const useStyles = makeStyles({
@@ -53,17 +54,19 @@ const useStyles = makeStyles({
 });
 
 
-const ProductList = ({ initProducts, initCategories }) => {
+const ProductList = ({ initProducts, initCategories, cart }) => {
+
+    const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
 
     //#region HOOKS
 
-    //useCheckCenterAndCatalogSelected();
     const reduxErrorCallback = useReduxErrorCallback();
     const classes = useStyles();
     const dispatch = useDispatch();
     const traductor = useTraductor();
     const checkProductCart = useCheckProductCart();
     const router = useRouter();
+    const setState = useSetState();
 
     //#endregion
 
@@ -101,6 +104,7 @@ const ProductList = ({ initProducts, initCategories }) => {
         traductor('precio_alto', { onlyfirst: true }),
         traductor('precio_bajo', { onlyfirst: true })
     ];
+
 
     //#region USE_STATE
 
@@ -208,22 +212,24 @@ const ProductList = ({ initProducts, initCategories }) => {
 
     const updateProductsState = (_products: IProduct[]): IProduct[] => {
 
-        let found: boolean = false;
-        if (_products.length > 0) {
+        const products: IProduct[] = _.cloneDeep(_products);
+
+        if (products.length > 0) {
 
             productsInCart.forEach((p: IProduct) => {
 
-                let product: IProduct | undefined = _products.find((pr: IProduct) => pr.id === p.id);
+                let product: IProduct | undefined = products.find((pr: IProduct) => pr.id === p.id);
                 if (product) {
-                    found = true;
                     product.amount = p.amount;
                     product.amountsByDay = p.amountsByDay;
                 }
 
             })
 
+
         }
-        return _products;
+
+        return products;
     };
 
     const SearchFavorites = () => {
@@ -336,14 +342,15 @@ const ProductList = ({ initProducts, initCategories }) => {
 
     useEffect(() => {
 
+        dispatch(cartActions(reduxErrorCallback).saveCart(cart)).then(() => { setProducts(updateProductsState(products)); });
+
         useCheckTokenInvalid(() => {
 
-            const service: UnitOfWorkService = new UnitOfWorkService();
-            service.getTokenService().removeToken();
-            service.getStateService().saveUserId(null);
+            tokenService.removeToken();
             router.push("/");
 
         });
+
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
@@ -367,15 +374,39 @@ const ProductList = ({ initProducts, initCategories }) => {
 
     useDeepCompareEffect(() => {
 
-        if (productsInCart.length === 0) {
-            new UnitOfWorkService().getStateService().saveCart(null);
+        if (productsInCart.length === 0)
             dispatch(cartActions(reduxErrorCallback).cleanCart);
-        }
 
         AdminBottomNavIcon()
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [productsInCart])
 
+    useEffect(() => {
+
+        return () => {
+
+            try {
+                setState(useStore().getState());
+            }
+            catch (error) {
+
+                router.push('/');
+                tokenService.writeToken(null);
+                dispatch(
+                    notify.showNotification({
+                        type: 'confirm',
+                        title: 'Error',
+                        message: error.message,
+                        onlyOk: true,
+                        textOk: 'OK',
+                    })
+                )
+            }
+
+        }
+
+    }, [])
 
     //#endregion
 
@@ -561,6 +592,7 @@ const ProductList = ({ initProducts, initCategories }) => {
                         dispatch(cartActions(reduxErrorCallback).saveProductToCart(product));
                         if (!isNull(centerInCart))
                             dispatch(cartActions(reduxErrorCallback).saveCenterToCart(centerInCart));
+
                         else
                             dispatch(cartActions(reduxErrorCallback).saveCenterToCart(centerSelected));
 
@@ -583,15 +615,15 @@ const ProductList = ({ initProducts, initCategories }) => {
             else {
                 UpdateProducts(product);
                 dispatch(cartActions(reduxErrorCallback).saveProductToCart(product));
+
             }
 
         }
         else {
-
             dispatch(cartActions(reduxErrorCallback).deleteProductFromCart(product));
             UpdateProducts(product);
         }
-        new UnitOfWorkService().getStateService().saveCart(useStore().getState().cart);
+
     }
 
     const handleScroll = (e: any) => {
@@ -736,32 +768,53 @@ const ProductList = ({ initProducts, initCategories }) => {
     )
 }
 
+
 export async function getServerSideProps({ req }) {
 
     try {
-        let state: IState = JSON.parse(decode((req.headers["cookie"] as string).split("=")[1]));
+
+        let state: IState;
         let products: IServerResponse<IProduct[]>;
         let categories: IServerResponse<ICategory[]>;
         const search: ISearchProduct = new SearchProduct();
+
+        const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
+        if (!req.cookies["session"])
+            throw new Error("Session not valid");
+
+        if (!tokenService.isTokenValid(req.cookies["session"]))
+            throw new Error("Session not valid");
+
+        const stateService: IStateService = new UnitOfWorkService().getStateService();
+        const resp: any = await stateService.loadState(req.cookies["session"]);
+
+        if (resp.data.resp === null)
+            state = { selectedCenter: null, selectedCatalog: null, cart: { products: [], center: null, supplier: null } }
+
+        else
+            state = JSON.parse(resp.data.resp);
+
+        if (state.selectedCenter === null || state.selectedCatalog === null)
+            throw new Error("Center or catalog is null")
+
         search.catalogId = state.selectedCatalog.id;
         search.centerId = state.selectedCenter.id;
-        products = await new UnitOfWorkUseCase().getSearchProductUseCase().searchProducts(search, 1, state.token);
-        categories = await new UnitOfWorkUseCase().getCategoriesUseCase().getCategories(search.catalogId, search.centerId, state.token);
+        products = await new UnitOfWorkUseCase().getSearchProductUseCase().searchProducts(search, 1, req.cookies["session"]);
+        categories = await new UnitOfWorkUseCase().getCategoriesUseCase().getCategories(search.catalogId, search.centerId, req.cookies["session"]);
         return {
-            props: { initProducts: _.orderBy(products.ServerData?.Data, ['name'], ['asc']), initCategories: categories.ServerData?.Data }
+            props: { initProducts: (products.ServerData?.Data.length > 0 && _.orderBy(products.ServerData?.Data) || [], ['name'], ['asc']), initCategories: categories.ServerData?.Data, cart: state.cart }
         };
     }
     catch (error) {
         return {
             redirect: {
-                destination: '/error',
+                destination: '/error?error=' + error.message,
                 permanent: false,
             },
         }
     }
 
 }
-
 
 export default createWrapper(useStore).withRedux(ProductList);
 

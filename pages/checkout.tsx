@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import moment from 'moment';
 import _, { get } from 'lodash';
 import {
@@ -35,6 +35,10 @@ import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 import { useRouter } from 'next/router'
 import useStore from 'src/redux/store';
 import { createWrapper } from 'next-redux-wrapper';
+import { IState } from 'src/infraestructure/interfaces';
+import { useSetState } from 'src/hooks/SetState';
+const { decode, encode } = require('url-encode-decode');
+
 
 const useStyles = makeStyles({
     root: {
@@ -70,24 +74,29 @@ const useStyles = makeStyles({
 
 const CheckOut = (props: any) => {
 
+    const service: UnitOfWorkService = new UnitOfWorkService();
+
     //#region HOOKS
 
     const reduxErrorCallback = useReduxErrorCallback();
     const classes = useStyles();
     const dispatch = useDispatch();
+    const setState = useSetState();
     const router = useRouter();
     const isDesktop = useMediaQuery('(min-width:900px)');
-    //  useCheckTokenInvalid();
+
 
     //#endregion
 
     //#region USE_STATE
 
+    const supplier: ISeller = props.cart.supplier;
+    const center: ICenter = props.cart.center;
+    const productsCart: IProduct[] = props.cart.products;
     const [searchValue, setSearchValue] = useState('');
     const [products, setProducts] = useState([] as IProduct[]);
     const [order, setOrder] = useState({} as IOrder);
     const [calendarDays, setCalendarDays] = useState([] as Date[]);
-    const [showCalendarDeliveryDate, setShowCalendarDeliveryDate] = useState(false);
     const [navValue, setNavValue] = useState(0);
     const traductor = useTraductor();
     const checkoutNavOptions = [
@@ -108,23 +117,15 @@ const CheckOut = (props: any) => {
 
     //#endregion
 
-    //#region USE_SELECTORS
-
-    const supplier: ISeller = useSelector((state: any) => state.cart.supplier);
-    const center: ICenter = useSelector((state: any) => state.cart.center);
-    const productsCart: IProduct[] = useSelector((state: any) => state.cart.products);
-
-    //#endregion
 
     //#region METHODS
 
 
     const UpdateProducts = (product: IProduct) => {
 
-        let aux: IProduct[] = _.cloneDeep(products);
         const index: number = products.findIndex((p: IProduct) => p.id === product.id);
-        aux[index] = product;
-        setProducts(aux);
+        products[index] = product;
+        setProducts([...products]);
     }
 
     const DeleteProduct = (product: IProduct) => {
@@ -175,9 +176,7 @@ const CheckOut = (props: any) => {
 
         useCheckTokenInvalid(() => {
 
-            const service: UnitOfWorkService = new UnitOfWorkService();
             service.getTokenService().removeToken();
-            service.getStateService().saveUserId(null);
             router.push("/");
 
         });
@@ -277,6 +276,28 @@ const CheckOut = (props: any) => {
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [calendarDays])
+
+    useEffect(() => {
+
+        return () => {
+
+            setState().catch((error: any) => {
+                service.getTokenService().writeToken(null);
+                router.push('/');
+                dispatch(
+                    notify.showNotification({
+                        type: 'confirm',
+                        title: 'Error',
+                        message: error.message,
+                        onlyOk: true,
+                        textOk: 'OK',
+                    })
+                )
+            })
+
+        }
+
+    }, [])
 
     //#endregion
 
@@ -395,7 +416,19 @@ const CheckOut = (props: any) => {
 
     const onBreakdownClick = () => {
 
-        router.push('/breakdown');
+        router.push({
+
+            pathname: '/breakdown',
+            query: {
+                order: encode(JSON.stringify({
+                    totalProducts: order.totalProducts,
+                    totalBase: order.totalBase,
+                    totalTaxes: order.totalTaxes,
+                    total: order.total
+                }))
+            },
+
+        });
     }
 
     const getPathDays = (month: number, year: number) => {
@@ -421,11 +454,7 @@ const CheckOut = (props: any) => {
         });
     }
 
-    const onDeliveryDateClick = () => {
-
-        getPathDays(moment().month() + 1, moment().year())
-
-    }
+    const onDeliveryDateClick = () => getPathDays(moment().month() + 1, moment().year())
 
     const onMonthChanged = (month: number, year: number) => getPathDays(month + 1, year);
 
@@ -626,6 +655,14 @@ const CheckOut = (props: any) => {
             </Container>
         </>
     )
+}
+
+export async function getServerSideProps(ctx: any) {
+
+    let state: IState = JSON.parse(decode((ctx.req.headers["cookie"] as string).split("=")[1]));
+    return {
+        props: { cart: state.cart }
+    };
 }
 
 export default createWrapper(useStore).withRedux(CheckOut);

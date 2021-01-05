@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { useHistory } from "react-router-dom";
-
+import React, { useEffect } from 'react';
+import { useStore } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import {
     Paper,
@@ -12,65 +10,81 @@ import {
     TableHead,
     TableRow,
 } from '@material-ui/core';
-
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import { TaxType } from 'src/domain/enums';
-import { IProduct } from 'src/domain/interfaces';
-
-import CartTooltip from 'src/presentation/components/tooltip/CartTooltip';
+import { IProduct, IOrder } from 'src/domain/interfaces';
+import { IState } from 'src/infraestructure/interfaces';
+const { decode } = require('url-encode-decode');
 import AppBar from 'src/presentation/components/appBar/AppBar';
 import { useTraductor } from 'src/hooks/Traductor';
+import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
+import { useRouter } from 'next/router';
+import { createWrapper } from 'next-redux-wrapper';
 
 const useStyles = makeStyles({
+
     container: {
         overflow: 'auto',
         height: 'calc(100vh - 80px)',
         marginTop: 80,
         padding: '0 1rem'
     },
+
     table: {
         marginBottom: 50,
     },
+
     bottomRow: {
         borderTop: '2px solid #333',
-    },
+    }
+
 });
 
 
 const BreakDown = (props: any) => {
 
     const classes = useStyles();
-    const history = useHistory();
     const traductor = useTraductor();
+    const router = useRouter();
 
-    useCheckTokenInvalid();
+    useCheckTokenInvalid(() => {
 
+        const service: UnitOfWorkService = new UnitOfWorkService();
+        service.getTokenService().removeToken();
+        service.getStateService().saveUserId(null);
+        router.push("/");
 
-    const cartProducts: IProduct[] = useSelector((state: any) => state.cart.products);
+    });
 
-    const [products, setProducts] = useState(props.location.state.products);
-    const [order, setOrder] = useState(props.location.state);
+    useEffect(() => {
 
+        return () => {
+            alert("asd")
+        }
+    }, [])
+
+    const products: IProduct[] = props.cart.products;
+    const order: IOrder = props.order;
 
     return (
         <>
             <AppBar
                 backIcon
                 title='Desglose'
-                handleClickMenu={(e: any) => history.goBack()}
+                handleClickMenu={(e: any) => router.back()}
                 showSwitch={false}
             />
             <TableContainer className={classes.container} component={Paper}>
                 <Table className={classes.table}>
                     <TableHead>
                         <TableRow>
-                            <TableCell align={'left'}>{traductor('producto', {onlyfirst:true})}</TableCell>
-                            <TableCell align={'left'}>{traductor('precio', {onlyfirst:true})}</TableCell>
-                            <TableCell align={'center'}>{traductor('cantidad', {onlyfirst:true})}</TableCell>
-                            <TableCell align={'left'}>{traductor('base', {onlyfirst:true})}</TableCell>
-                            <TableCell align={'left'} >{traductor('impuestos', {onlyfirst:true})}</TableCell>
-                            <TableCell align={'left'}>{traductor('total_impuestos', {onlyfirst:true})}</TableCell>
-                            <TableCell align={'left'}>{traductor('total', {onlyfirst:true})}</TableCell>
+                            <TableCell align={'left'}>{traductor('producto', { onlyfirst: true })}</TableCell>
+                            <TableCell align={'left'}>{traductor('precio', { onlyfirst: true })}</TableCell>
+                            <TableCell align={'center'}>{traductor('cantidad', { onlyfirst: true })}</TableCell>
+                            <TableCell align={'left'}>{traductor('base', { onlyfirst: true })}</TableCell>
+                            <TableCell align={'left'} >{traductor('impuestos', { onlyfirst: true })}</TableCell>
+                            <TableCell align={'left'}>{traductor('total_impuestos', { onlyfirst: true })}</TableCell>
+                            <TableCell align={'left'}>{traductor('total', { onlyfirst: true })}</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -95,7 +109,7 @@ const BreakDown = (props: any) => {
                         }
                     </TableBody>
                     <TableRow className={classes.bottomRow}>
-                        <TableCell>{traductor('total', {uppercase:true})}</TableCell>
+                        <TableCell>{traductor('total', { uppercase: true })}</TableCell>
                         <TableCell></TableCell>
                         <TableCell align={'center'}>{order.totalProducts}</TableCell>
                         <TableCell align={'left'}>{`${order.totalBase}€`}</TableCell>
@@ -105,9 +119,18 @@ const BreakDown = (props: any) => {
                     </TableRow>
                 </Table>
             </TableContainer>
-            {cartProducts.length && <CartTooltip color='orange' bottom={'10px'} />}
+
         </>
     )
 };
 
-export default BreakDown;
+
+export async function getServerSideProps({ req, query }) {
+
+    let state: IState = JSON.parse(decode((req.headers["cookie"] as string).split("=")[1]));
+    return {
+        props: { cart: state.cart, order: JSON.parse(decode(query.order)) }
+    };
+}
+
+export default createWrapper(useStore).withRedux(BreakDown);

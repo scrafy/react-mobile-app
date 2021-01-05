@@ -33,7 +33,7 @@ const useStyles = makeStyles({
 
 const Incidence = () => {
 
-    // useCheckTokenInvalid();
+    const service: UnitOfWorkService = new UnitOfWorkService();
 
     const traductor = useTraductor();
     const router = useRouter();
@@ -54,10 +54,8 @@ const Incidence = () => {
     useEffect(() => {
 
         useCheckTokenInvalid(() => {
-
-            const service: UnitOfWorkService = new UnitOfWorkService();
+            
             service.getTokenService().removeToken();
-            service.getStateService().saveUserId(null);
             router.push("/");
 
         });

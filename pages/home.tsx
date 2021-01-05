@@ -15,12 +15,11 @@ import AppBar from 'src/presentation/components/appBar/AppBar';
 import Drawer from 'src/presentation/components/drawer/TemporaryDrawer';
 import CartTooltip from 'src/presentation/components/tooltip/CartTooltip';
 import SimpleSelect from 'src/presentation/components/dropdowns/SimpleSelect';
-import { IState, IStateService, ITokenService } from 'src/infraestructure/interfaces';
+import { IStateService, ITokenService } from 'src/infraestructure/interfaces';
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import notify from 'src/redux/notifications/actions';
 import cartActions from 'src/redux/cart/actions';
-import userActions from 'src/redux/users/actions';
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/router';
 import {
     AddCircle,
     LocalShipping,
@@ -33,7 +32,8 @@ import _ from 'lodash';
 import { useTraductor } from 'src/hooks/Traductor';
 import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 import { createWrapper } from 'next-redux-wrapper';
-const { decode } = require('url-encode-decode')
+import useSetState from 'src/hooks/SetState';
+
 
 const useStyles = makeStyles({
     button: {
@@ -83,11 +83,13 @@ const Home = (props: any) => {
         }
     ];
 
-    const stateService: IStateService = new UnitOfWorkService().getStateService();
+    const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
     const classes = useStyles();
     const router = useRouter();
     const dispatch = useDispatch();
     const reduxErrorCallback = useReduxErrorCallback();
+    const setState = useSetState();
+
     const centers: ICenter[] = useSelector((state: any) => state.centers.centers);
     const centerCatalogs: ICatalog[] = useSelector((state: any) => state.catalogs.catalogs);
     const cartProducts: IProduct[] = useSelector((state: any) => state.cart.products);
@@ -101,52 +103,28 @@ const Home = (props: any) => {
 
     useEffect(() => {
 
-        const { selectedCenter, selectedCatalog, _userId } = props;
         useCheckTokenInvalid(() => {
-            
-            const service:UnitOfWorkService = new UnitOfWorkService();
-            service.getTokenService().removeToken();
-            service.getStateService().saveUserId(null);
+
+            tokenService.removeToken();
             router.push("/");
 
         });
 
-        if (selectedCenter !== null)
-            setCenterSelected(selectedCenter);
-
-        if (selectedCatalog !== null)
-            setCatalogSelected(selectedCatalog);
-
-        const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
-        const userId: string | undefined = tokenService.getClaimFromToken("userId");
-
-        if (!userId)
-            router.push('/');
-
-        if (userId !== _userId) {
-
-            dispatch(cartActions(reduxErrorCallback).cleanCart);
-            dispatch(centerActions(reduxErrorCallback).saveCenter(null));
-            dispatch(catalogActions(reduxErrorCallback).saveCatalog(null));
-            setCenterSelected(null);
-            setCatalogSelected(null);
-
-        } else {
-
-            if (selectedCenter !== null) {
-
-                dispatch(centerActions(reduxErrorCallback).saveCenter(selectedCenter));
-                dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(selectedCenter.id));
-            }
-
-            if (selectedCatalog !== null)
-
-                dispatch(catalogActions(reduxErrorCallback).saveCatalog(selectedCatalog));
-
-        }
-        dispatch(userActions(reduxErrorCallback).saveUserId(new UnitOfWorkService().getTokenService().getClaimFromToken("userId")));
         dispatch(centerActions(reduxErrorCallback).getCenters);
         dispatch(getProviders(reduxErrorCallback).getProviders);
+        dispatch(centerActions(reduxErrorCallback).saveCenter(props.state.selectedCenter));
+        dispatch(catalogActions(reduxErrorCallback).saveCatalog(props.state.selectedCatalog));
+        dispatch(cartActions(reduxErrorCallback).saveCart(props.state.cart));
+        setCenterSelected(props.state.selectedCenter);
+        setCatalogSelected(props.state.selectedCatalog);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    useEffect(() => {
+
+        if (props.state.selectedCenter !== null)
+            dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(props.state.selectedCenter.id));
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
@@ -163,6 +141,32 @@ const Home = (props: any) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [centers])
 
+
+    useEffect(() => {
+
+        return () => {
+
+            try {
+                setState(useStore().getState());
+            }
+            catch (error) {
+                router.push('/');
+                tokenService.writeToken(null);
+                dispatch(
+                    notify.showNotification({
+                        type: 'confirm',
+                        title: 'Error',
+                        message: error.message,
+                        onlyOk: true,
+                        textOk: 'OK',
+                    })
+                )
+            }
+
+        }
+
+    }, [])
+
     const onCenterSelected = (event: any) => {
 
         setCatalogSelected(null);
@@ -172,7 +176,6 @@ const Home = (props: any) => {
             const selectedCenter: ICenter | undefined = centers.find((center: ICenter) => center.id === parseInt(event.target.value));
             if (selectedCenter) {
 
-                stateService.saveCenter(selectedCenter);
                 dispatch(centerActions(reduxErrorCallback).saveCenter(selectedCenter));
                 setCenterSelected(selectedCenter);
             }
@@ -180,7 +183,7 @@ const Home = (props: any) => {
             dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(parseInt(event.target.value)));
         }
         else {
-            stateService.saveCenter(null);
+
             dispatch(centerActions(reduxErrorCallback).saveCenter(null));
             dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(null));
             setCenterSelected(null);
@@ -194,12 +197,13 @@ const Home = (props: any) => {
         if (parseInt(event.target.value) > 0 && parseInt(event.target.value) < 1000) {
             const selectedCatalog: ICatalog | undefined = centerCatalogs.find((catalog: ICatalog) => catalog.id === parseInt(event.target.value));
             if (selectedCatalog) {
-                stateService.saveCatalog(selectedCatalog);
+
                 dispatch(catalogActions(reduxErrorCallback).saveCatalog(selectedCatalog));
                 setCatalogSelected(selectedCatalog);
             }
         }
         else {
+
             dispatch(catalogActions(reduxErrorCallback).saveCatalog(null));
             setCatalogSelected(null);
         }
@@ -211,7 +215,7 @@ const Home = (props: any) => {
         if (catalogSelected === null)
             return;
 
-        router.push(`/productlist?center=${centerSelected?.id}&catalog=${catalogSelected.id}`);
+        router.push('/productlist');
     }
 
     const onHandleNavChangeOption = (_: any, selected: any) => {
@@ -350,8 +354,30 @@ const Home = (props: any) => {
 
 export async function getServerSideProps(ctx: any) {
 
-    const state:IState = JSON.parse(decode((ctx.req.headers["cookie"] as string).split("=")[1]));
-    return { props: { selectedCenter: state.selectedCenter, selectedCatalog: state.selectedCatalog, _userId: state.userId }};
+    try {
+
+        const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
+        if (!ctx.req.cookies["session"])
+            throw new Error("Session not valid");
+
+        if (!tokenService.isTokenValid(ctx.req.cookies["session"]))
+            throw new Error("Session not valid");
+
+        const stateService: IStateService = new UnitOfWorkService().getStateService();
+        const resp: any = await stateService.loadState(ctx.req.cookies["session"]);
+        if (resp.data.resp === null)
+            return { props: { state: { selectedCenter: null, selectedCatalog: null, cart: { products: [], center: null, supplier: null } } } }
+        else
+            return { props: { state: JSON.parse(resp.data.resp) } };
+    }
+    catch (error) {
+        return {
+            redirect: {
+                destination: '/error?error=' + error.message,
+                permanent: false,
+            },
+        }
+    }
 }
 
 export default createWrapper(useStore).withRedux(Home);

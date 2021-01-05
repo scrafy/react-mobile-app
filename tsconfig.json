@@ -40,7 +40,7 @@
     "src",
     "pages/Incidence.tsx",
     "pages/Suppliers.tsx",
-    "pages/GeneralProductSearch.tsx",
+    ".pages/generalproductsearch.tsx",
     "pages/SingIn.tsx",
     "pages/RecoverPassword.tsx",
     "pages/Home.tsx",
@@ -48,6 +48,7 @@
     "pages/Confirmation.tsx",
     "pages/CheckOut.tsx",
     "pages/Centers.tsx",
-    "pages/BreakDown.tsx"
+    ".pages/breakdown.tsx",
+    "pages/api"
   ]
 }

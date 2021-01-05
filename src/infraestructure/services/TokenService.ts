@@ -1,24 +1,18 @@
-import { IStateService, ITokenService } from "../interfaces";
+import { ITokenService } from "../interfaces";
 import { JwtTokenError } from "../../domain/exceptions";
 import { ErrorCode } from "../../domain/enums";
-import { UnitOfWorkService } from "../unitsofwork";
+import Cookies from "js-cookie";
 const jwt = require('jsonwebtoken');
 
 
 export class TokenService implements ITokenService {
-
-    private service: IStateService;
-
-    constructor() {
-        this.service = new UnitOfWorkService().getStateService();
-    }
 
     getPayload = (): any | undefined => {
 
         let payload;
 
         if (this.isTokenValid()) {
-            payload = jwt.verify(this.service.loadToken(), process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 });
+            payload = jwt.verify(this.readToken(), process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 });
             return payload;
         }
         return undefined;
@@ -26,17 +20,29 @@ export class TokenService implements ITokenService {
 
     removeToken = (): void => {
 
-        this.service.saveToken(null);
+        this.writeToken(null);
     }
 
-    readToken = (): string | null => this.service.loadToken();
+    readToken = (): string | null => {
 
-    writeToken = (token: string): void => {
+        let token: string = Cookies.getJSON("session");
+        if (token)
+            return token;
+
+        return null;
+
+    }
+
+    writeToken = (token: string | null): void => {
 
         try {
 
-            jwt.verify(token, process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 })
-            this.service.saveToken(token);
+            if (token) {
+                jwt.verify(token, process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 })
+                Cookies.set("session", token, { expires: 365, path: '' })
+            } else {
+                Cookies.remove("session", { path: '' })
+            }
         }
         catch (error) {
 
@@ -45,14 +51,20 @@ export class TokenService implements ITokenService {
 
     }
 
-    isTokenValid = (): boolean => {
+    isTokenValid = (token?: string): boolean => {
 
-        const token = this.service.loadToken();
+        let _token: string | null;
+
         if (!token)
+            _token = this.readToken();
+        else
+            _token = token
+
+        if (!_token)
             return false;
 
         try {
-            jwt.verify(token, process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 });
+            jwt.verify(_token, process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 });
             return true;
         }
         catch (error) {
@@ -66,7 +78,7 @@ export class TokenService implements ITokenService {
         try {
 
             let payload;
-            payload = jwt.verify(this.service.loadToken(), process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 });
+            payload = jwt.verify(this.readToken(), process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 });
             const value = payload[claim]
             if (!value)
                 throw new JwtTokenError(ErrorCode.JWT_TOKEN_INVALID, `It was not possible to get ${claim} claim from token`);

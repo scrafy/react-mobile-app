@@ -1,162 +1,36 @@
-import { IStateService, ICart } from "../interfaces";
-import Cookies from "js-cookie";
-import { ICenter, ICatalog } from "src/domain/interfaces";
-import { IState } from "../interfaces";
+import { IState, IStateService } from "../interfaces";
+import { IHttpClient } from "../interfaces/IHttpClient";
+import { UnitOfWorkService } from "../unitsofwork";
+
 
 export class StateService implements IStateService {
 
+    private client: IHttpClient;
+    private headers: Map<string, string>;
+
     constructor() {
 
-        let state: IState = Cookies.getJSON("state");
-
-        if (!state)
-            Cookies.set("state", JSON.stringify(this.createState()), { expires: 365, path: '' })
-
+        this.client = new UnitOfWorkService().getHttpClientService();
+        this.headers = new Map<string, string>();
+        this.headers.set("Content-Type", "application/json");
+        this.headers.set("Accept", "application/json");
     }
 
-
-    private createState(): IState {
-
-        const state: IState = {
-            selectedCenter: null,
-            selectedCatalog: null,
-            cart: {
-                products: [],
-                center: null,
-                supplier: null
-            },
-            userId: null,
-            token: null
-        }
-        return state;
-    }
-
-    loadToken(): string | null {
-
-        let state: IState = Cookies.getJSON("state");
-        if (state)
-            return state.token;
-
-        return null;
-    }
-
-    saveToken(token: string | null): void {
-
-        let state: IState = Cookies.getJSON("state");
-        if (state)
-            state.token = token;
-        else {
-            state = this.createState();
-            state.token = token;
-        }
-
-        Cookies.set("state", JSON.stringify(state), { expires: 365, path: '' })
-    }
-
-    loadUserId(): string | null {
-
-        let state: IState = Cookies.getJSON("state");
-        if (state)
-            return state.userId;
-
-        return null;
-    }
-
-    saveUserId(userId: string | null): void {
-
-        let state: IState = Cookies.getJSON("state");
-        if (state)
-            state.userId = userId;
-        else {
-            state = this.createState();
-            state.userId = userId;
-        }
-        Cookies.set("state", JSON.stringify(state), { expires: 365, path: '' })
-    }
-
-    saveCenter(center: ICenter | null): void {
-
-        let state: IState = Cookies.getJSON("state");
-        if (state)
-            state.selectedCenter = center;
-        else {
-            state = this.createState();
-            state.selectedCenter = center;
-        }
-        Cookies.set("state", JSON.stringify(state), { expires: 365, path: '' })
-    }
-
-    loadCenter(): ICenter | null {
-
-        let state: IState = Cookies.getJSON("state");
-        if (state)
-            return state.selectedCenter;
-
-        return null;
-    }
-
-    saveCatalog(catalog: ICatalog | null): void {
-
-        let state: IState = Cookies.getJSON("state");
-        if (state)
-            state.selectedCatalog = catalog;
-        else {
-            state = this.createState();
-            state.selectedCatalog = catalog;
-        }
-        Cookies.set("state", JSON.stringify(state), { expires: 365, path: '' })
-    }
-
-    loadCatalog(): ICatalog | null {
-
-        let state: IState = Cookies.getJSON("state");
-        if (state)
-            return state.selectedCatalog;
-
-        return null;
-    }
-
-    loadCart(): ICart | null {
-
-        let state: IState = Cookies.getJSON("state");
-        if (state)
-            return state.cart;
-
-        return null;
-
-    }
-
-    saveCart(cart: ICart | null): void {
-
-        let state: IState = Cookies.getJSON("state");
-        if (state)
-            state.cart = cart || {
-                products: [],
-                center: null,
-                supplier: null
-            };
-        else {
-            state = this.createState();
-            state.cart = {
-                products: [],
-                center: null,
-                supplier: null
-            };
-        }
-        Cookies.set("state", JSON.stringify(state), { expires: 365, path: '' })
+    syncSaveState(state: IState): any {
         
+        return this.client.syncPostJsonData('api/state/set', state, this.headers, false);
     }
 
-    saveState(state: IState): void {
+    async saveState(state: IState, sync: boolean = false): Promise<any> {
 
-        Cookies.set("state", JSON.stringify(state), { expires: 365, path: '' })
+        return this.client.postJsonData('api/state/set', state, this.headers, false);
     }
 
-    loadState(): IState {
+    async loadState(token?: string): Promise<IState> {
 
-        let state: IState = Cookies.getJSON("state") || this.createState();
-        return state;
-
+        if (token)
+            return this.client.tokenGetJsonResponse(`http://localhost:${process.env.REACT_APP_LOCAL_PORT}/api/state/get`, null, token);
+        else
+            return this.client.getJsonResponse(`http://localhost:${process.env.REACT_APP_LOCAL_PORT}/api/state/get`, null, false);
     }
-
 }

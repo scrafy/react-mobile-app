@@ -2,13 +2,14 @@ import { ICenter, IProduct, ISeller } from "src/domain/interfaces";
 import Actions from "./enumActions";
 import lodash from 'lodash';
 import useStore from 'src/redux/store/index';
+import { ICart } from "src/infraestructure/interfaces";
 
 
 export default (errorCallback: (error: string) => void): any => {
-    
+
     return {
 
-        saveProductToCart: (product: IProduct) => (dispatch: any) => {
+        saveProductToCart: (product: IProduct) => async (dispatch: any) => {
 
             try {
 
@@ -35,10 +36,11 @@ export default (errorCallback: (error: string) => void): any => {
             }
             catch (error) {
                 errorCallback(error.message);
+
             }
         },
 
-        deleteProductFromCart: (product: IProduct) => (dispatch: any) => {
+        deleteProductFromCart: (product: IProduct) => async (dispatch: any) => {
 
             try {
 
@@ -70,7 +72,7 @@ export default (errorCallback: (error: string) => void): any => {
             }
         },
 
-        saveCenterToCart: (center: ICenter | null) => (dispatch: any) => {
+        saveCenterToCart: (center: ICenter | null) => async (dispatch: any) => {
 
             try {
                 dispatch({
@@ -84,7 +86,7 @@ export default (errorCallback: (error: string) => void): any => {
 
         },
 
-        saveSupplierToCart: (supplier: ISeller | null) => (dispatch: any) => {
+        saveSupplierToCart: (supplier: ISeller | null) => async (dispatch: any) => {
 
             try {
                 dispatch({
@@ -97,7 +99,7 @@ export default (errorCallback: (error: string) => void): any => {
             }
         },
 
-        deleteProductsFromCart: (dispatch: any) => {
+        deleteProductsFromCart: async (dispatch: any) => {
 
             try {
                 dispatch({
@@ -109,11 +111,24 @@ export default (errorCallback: (error: string) => void): any => {
             }
         },
 
-        cleanCart: (dispatch: any) => {
+        cleanCart: async (dispatch: any) => {
 
             try {
                 dispatch({
                     type: Actions.CLEAN_CART
+                })
+            }
+            catch (error) {
+                errorCallback(error.message);
+            }
+        },
+
+        saveCart: (cart: ICart | null) => async (dispatch:any) => {
+
+            try {
+                dispatch({
+                    type: Actions.SAVE_CART,
+                    payload: cart || { products: [], center: null, supplier: null }
                 })
             }
             catch (error) {

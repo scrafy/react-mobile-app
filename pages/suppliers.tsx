@@ -15,8 +15,8 @@ import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 
 function Suppliers() {
 
-    //useCheckTokenInvalid();
     
+    const service:UnitOfWorkService = new UnitOfWorkService();
     const router = useRouter();
     const isDesktop = useMediaQuery('(min-width:900px)');
     const traductor = useTraductor();
@@ -27,10 +27,8 @@ function Suppliers() {
     useEffect(() => {
 
         useCheckTokenInvalid(() => {
-            
-            const service:UnitOfWorkService = new UnitOfWorkService();
+                        
             service.getTokenService().removeToken();
-            service.getStateService().saveUserId(null);
             router.push("/");
 
         });

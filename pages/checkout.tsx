@@ -18,8 +18,8 @@ import {
     List as ListIcon,
     Event,
 } from '@material-ui/icons';
-import { ICenter, IProduct, IServerResponse, ISeller, IOrder, IOrderCenterInfo, IOrderSellerInfo } from 'src/domain/interfaces'
-import { Order, OrderCenterInfo, OrderSellerInfo } from 'src/domain/models'
+import { ICenter, IProduct, IServerResponse, ISeller, IOrder, IOrderCenterInfo, IOrderSellerInfo, ISearchProduct } from 'src/domain/interfaces'
+import { Order, OrderCenterInfo, OrderSellerInfo, SearchProduct } from 'src/domain/models'
 import AppBar from 'src/presentation/components/appBar/AppBar';
 import { UnitOfWorkUseCase } from 'src/application/unitsofwork/UnitOfWorkUseCase';
 import Product from 'src/presentation/components/product/Product';
@@ -35,9 +35,9 @@ import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 import { useRouter } from 'next/router'
 import useStore from 'src/redux/store';
 import { createWrapper } from 'next-redux-wrapper';
-import { IState } from 'src/infraestructure/interfaces';
-import { useSetState } from 'src/hooks/SetState';
-const { decode, encode } = require('url-encode-decode');
+import { IState, IStateService, ITokenService } from 'src/infraestructure/interfaces';
+import useSetState from 'src/hooks/SetState';
+const { encode } = require('url-encode-decode');
 
 
 const useStyles = makeStyles({
@@ -75,15 +75,16 @@ const useStyles = makeStyles({
 const CheckOut = (props: any) => {
 
     const service: UnitOfWorkService = new UnitOfWorkService();
+    const useCase: UnitOfWorkUseCase = new UnitOfWorkUseCase();
 
     //#region HOOKS
 
     const reduxErrorCallback = useReduxErrorCallback();
     const classes = useStyles();
     const dispatch = useDispatch();
-    const setState = useSetState();
     const router = useRouter();
     const isDesktop = useMediaQuery('(min-width:900px)');
+    const setState = useSetState();
 
 
     //#endregion
@@ -134,7 +135,7 @@ const CheckOut = (props: any) => {
         const index: number = products.findIndex((p: IProduct) => p.id === product.id);
         aux.splice(index, 1);
         if (aux.length === 0) {
-            dispatch(cartActions(reduxErrorCallback).cleanCart);
+            dispatch(cartActions(reduxErrorCallback).cleanCart).then(() => { setState(useStore().getState()) });
             router.back();
         }
         else
@@ -184,7 +185,7 @@ const CheckOut = (props: any) => {
         GenerateOrder();
         if (supplier !== null && center !== null && productsCart.length > 0)
 
-            new UnitOfWorkUseCase().getProductsFromFavoriteListUseCase().getProductsFromFavoriteList(center.id).then((resp: IServerResponse<IProduct[]>) => {
+            useCase.getProductsFromFavoriteListUseCase().getProductsFromFavoriteList(center.id).then((resp: IServerResponse<IProduct[]>) => {
 
                 if (resp.ServerData?.Data && resp.ServerData?.Data.length > 0) {
 
@@ -241,7 +242,7 @@ const CheckOut = (props: any) => {
 
             const _order: IOrder = _.cloneDeep(order);
             _order.products = _.cloneDeep(products);
-            new UnitOfWorkUseCase().getOrderTotalSummaryUseCase().getOrderTotalsSummary(_order).then(resp => {
+            useCase.getOrderTotalSummaryUseCase().getOrderTotalsSummary(_order).then(resp => {
 
                 setOrder((resp.ServerData?.Data as IOrder) || new Order());
 
@@ -277,28 +278,6 @@ const CheckOut = (props: any) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [calendarDays])
 
-    useEffect(() => {
-
-        return () => {
-
-            setState().catch((error: any) => {
-                service.getTokenService().writeToken(null);
-                router.push('/');
-                dispatch(
-                    notify.showNotification({
-                        type: 'confirm',
-                        title: 'Error',
-                        message: error.message,
-                        onlyOk: true,
-                        textOk: 'OK',
-                    })
-                )
-            })
-
-        }
-
-    }, [])
-
     //#endregion
 
     //#region CALLBACKS
@@ -307,7 +286,7 @@ const CheckOut = (props: any) => {
 
         if (product.favorite)
 
-            new UnitOfWorkUseCase().getAddProductToFavoriteListUseCase().addProductToFavoriteList(product.id).then(resp => {
+            useCase.getAddProductToFavoriteListUseCase().addProductToFavoriteList(product.id).then(resp => {
 
                 UpdateProducts(product);
 
@@ -325,7 +304,7 @@ const CheckOut = (props: any) => {
             })
         else {
 
-            new UnitOfWorkUseCase().getDeleteProductFromFavoriteListUseCase().deleteProductFromFavoriteList(product.id).then(resp => {
+            useCase.getDeleteProductFromFavoriteListUseCase().deleteProductFromFavoriteList(product.id).then(resp => {
 
                 UpdateProducts(product);
 
@@ -348,11 +327,13 @@ const CheckOut = (props: any) => {
     const onProductAmountModified = (product: IProduct) => {
 
         if (product.amount > 0) {
-            dispatch(cartActions(reduxErrorCallback).saveProductToCart(product));
+
+            dispatch(cartActions(reduxErrorCallback).saveProductToCart(product)).then(() => setState(useStore().getState()));
             UpdateProducts(product);
         }
         else {
-            dispatch(cartActions(reduxErrorCallback).deleteProductFromCart(product));
+
+            dispatch(cartActions(reduxErrorCallback).deleteProductFromCart(product)).then(() => setState(useStore().getState()));
             DeleteProduct(product);
         }
     }
@@ -369,8 +350,8 @@ const CheckOut = (props: any) => {
                 textClose: 'NO',
                 onOk: () => {
 
-                    new UnitOfWorkUseCase().getConfirmOrderUseCase().confirmOrder(order).then(resp => {
-                        dispatch(cartActions(reduxErrorCallback).cleanCart);
+                    useCase.getConfirmOrderUseCase().confirmOrder(order).then(resp => {
+                        dispatch(cartActions(reduxErrorCallback).cleanCart).then(() => { setState(useStore().getState()) });
                         router.push('/confirmation')
 
                     }).catch(error => {
@@ -405,7 +386,7 @@ const CheckOut = (props: any) => {
                 textOk: 'OK',
                 textClose: traductor('cancelar', { onlyfirst: true }),
                 onOk: () => {
-                    dispatch(cartActions(reduxErrorCallback).cleanCart);
+                    dispatch(cartActions(reduxErrorCallback).cleanCart).then(() => { setState(useStore().getState()) });
                     router.back();
                 }
             })
@@ -433,7 +414,7 @@ const CheckOut = (props: any) => {
 
     const getPathDays = (month: number, year: number) => {
 
-        new UnitOfWorkUseCase().getCenterDeliveryDaysUseCase().getCenterDeliveryDays(center.id, month, year).then((resp: IServerResponse<Date[]>) => {
+        useCase.getCenterDeliveryDaysUseCase().getCenterDeliveryDays(center.id, month, year).then((resp: IServerResponse<Date[]>) => {
 
             if (resp.ServerData?.Data && resp.ServerData.Data.length > 0)
                 setCalendarDays(resp.ServerData.Data);
@@ -657,12 +638,40 @@ const CheckOut = (props: any) => {
     )
 }
 
-export async function getServerSideProps(ctx: any) {
+export async function getServerSideProps(ctx:any) {
 
-    let state: IState = JSON.parse(decode((ctx.req.headers["cookie"] as string).split("=")[1]));
-    return {
-        props: { cart: state.cart }
-    };
+    try {
+
+        let state: IState;
+
+        const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
+        if (!ctx.req.cookies["session"])
+            throw new Error("Session not valid");
+
+        if (!tokenService.isTokenValid(ctx.req.cookies["session"]))
+            throw new Error("Session not valid");
+
+        const stateService: IStateService = new UnitOfWorkService().getStateService();
+        const resp: any = await stateService.loadState(ctx.req.cookies["session"]);
+
+        if (resp.data.resp === null)
+            state = { selectedCenter: null, selectedCatalog: null, cart: { products: [], center: null, supplier: null } }
+
+        else
+            state = JSON.parse(resp.data.resp);
+
+        return {
+            props: { cart: state.cart }
+        };
+    }
+    catch (error) {
+        return {
+            redirect: {
+                destination: '/error?error=' + error.message,
+                permanent: false,
+            },
+        }
+    }
 }
 
 export default createWrapper(useStore).withRedux(CheckOut);

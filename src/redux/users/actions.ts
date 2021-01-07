@@ -5,7 +5,7 @@ export default (errorCallback: (error: string) => void): any => {
 
     return {
 
-        saveUserId: (userId: string | null) => (dispatch: any) => {
+        saveUserId: (userId: string | null) => async (dispatch: any) => {
 
             try {
                 dispatch({

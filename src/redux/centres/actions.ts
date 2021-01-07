@@ -23,7 +23,7 @@ export default (errorCallback: (error: string) => void): any => {
             }
         },
 
-        saveCenter: (center: ICenter | null) => (dispatch: any) => {
+        saveCenter: (center: ICenter | null) => async (dispatch: any) => {
 
             try {
 

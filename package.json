@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "db": "cd ./pages/api/db && ts-node setup.ts",
+    "init-db": "rm -rf database && cd db && ts-node setup.ts",
     "dev": "next dev",
     "build": "next build",
     "start": "next start"

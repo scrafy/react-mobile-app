@@ -20,6 +20,7 @@ import { useTraductor } from 'src/hooks/Traductor';
 import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 import { useRouter } from 'next/router';
 import { createWrapper } from 'next-redux-wrapper';
+import { ITokenService, IStateService } from 'src/infraestructure/interfaces';
 
 const useStyles = makeStyles({
 
@@ -46,25 +47,22 @@ const BreakDown = (props: any) => {
     const classes = useStyles();
     const traductor = useTraductor();
     const router = useRouter();
-
-    useCheckTokenInvalid(() => {
-
-        const service: UnitOfWorkService = new UnitOfWorkService();
-        service.getTokenService().removeToken();
-        service.getStateService().saveUserId(null);
-        router.push("/");
-
-    });
-
-    useEffect(() => {
-
-        return () => {
-            alert("asd")
-        }
-    }, [])
+    const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
 
     const products: IProduct[] = props.cart.products;
     const order: IOrder = props.order;
+
+    useEffect(() => {
+
+        useCheckTokenInvalid(() => {
+
+            tokenService.removeToken();
+            router.push("/");
+
+        });
+
+    }, [])
+   
 
     return (
         <>
@@ -127,10 +125,39 @@ const BreakDown = (props: any) => {
 
 export async function getServerSideProps({ req, query }) {
 
-    let state: IState = JSON.parse(decode((req.headers["cookie"] as string).split("=")[1]));
-    return {
-        props: { cart: state.cart, order: JSON.parse(decode(query.order)) }
-    };
+    try {
+
+        let state: IState;
+
+        const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
+        if (!req.cookies["session"])
+            throw new Error("Session not valid");
+
+        if (!tokenService.isTokenValid(req.cookies["session"]))
+            throw new Error("Session not valid");
+
+        const stateService: IStateService = new UnitOfWorkService().getStateService();
+        const resp: any = await stateService.loadState(req.cookies["session"]);
+
+        if (resp.data.resp === null)
+            state = { selectedCenter: null, selectedCatalog: null, cart: { products: [], center: null, supplier: null } }
+
+        else
+            state = JSON.parse(resp.data.resp);
+
+        return {
+            props: { cart: state.cart, order: JSON.parse(decode(query.order)) }
+        };
+    }
+    catch (error) {
+        return {
+            redirect: {
+                destination: '/error?error=' + error.message,
+                permanent: false,
+            },
+        }
+    }
+
 }
 
 export default createWrapper(useStore).withRedux(BreakDown);

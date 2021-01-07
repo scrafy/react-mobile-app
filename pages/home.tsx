@@ -136,36 +136,10 @@ const Home = (props: any) => {
             if (centers.length > 0)
 
                 if (!_.some(centers, ((c: ICenter) => c.id === centerInCart.id)))
-                    dispatch(cartActions(reduxErrorCallback).cleanCart);
+                    dispatch(cartActions(reduxErrorCallback).cleanCart).then(() => setState(useStore().getState()));
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [centers])
-
-
-    useEffect(() => {
-
-        return () => {
-
-            try {
-                setState(useStore().getState());
-            }
-            catch (error) {
-                router.push('/');
-                tokenService.writeToken(null);
-                dispatch(
-                    notify.showNotification({
-                        type: 'confirm',
-                        title: 'Error',
-                        message: error.message,
-                        onlyOk: true,
-                        textOk: 'OK',
-                    })
-                )
-            }
-
-        }
-
-    }, [])
 
     const onCenterSelected = (event: any) => {
 
@@ -176,7 +150,7 @@ const Home = (props: any) => {
             const selectedCenter: ICenter | undefined = centers.find((center: ICenter) => center.id === parseInt(event.target.value));
             if (selectedCenter) {
 
-                dispatch(centerActions(reduxErrorCallback).saveCenter(selectedCenter));
+                dispatch(centerActions(reduxErrorCallback).saveCenter(selectedCenter)).then(() => setState(useStore().getState()));
                 setCenterSelected(selectedCenter);
             }
 
@@ -184,7 +158,7 @@ const Home = (props: any) => {
         }
         else {
 
-            dispatch(centerActions(reduxErrorCallback).saveCenter(null));
+            dispatch(centerActions(reduxErrorCallback).saveCenter(null)).then(() => setState(useStore().getState()));
             dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(null));
             setCenterSelected(null);
             setCatalogSelected(null);
@@ -198,13 +172,13 @@ const Home = (props: any) => {
             const selectedCatalog: ICatalog | undefined = centerCatalogs.find((catalog: ICatalog) => catalog.id === parseInt(event.target.value));
             if (selectedCatalog) {
 
-                dispatch(catalogActions(reduxErrorCallback).saveCatalog(selectedCatalog));
+                dispatch(catalogActions(reduxErrorCallback).saveCatalog(selectedCatalog)).then(() => setState(useStore().getState()));
                 setCatalogSelected(selectedCatalog);
             }
         }
         else {
 
-            dispatch(catalogActions(reduxErrorCallback).saveCatalog(null));
+            dispatch(catalogActions(reduxErrorCallback).saveCatalog(null)).then(() => setState(useStore().getState()));
             setCatalogSelected(null);
         }
 
@@ -365,12 +339,14 @@ export async function getServerSideProps(ctx: any) {
 
         const stateService: IStateService = new UnitOfWorkService().getStateService();
         const resp: any = await stateService.loadState(ctx.req.cookies["session"]);
+        
         if (resp.data.resp === null)
             return { props: { state: { selectedCenter: null, selectedCatalog: null, cart: { products: [], center: null, supplier: null } } } }
         else
             return { props: { state: JSON.parse(resp.data.resp) } };
     }
     catch (error) {
+        console.log(error)
         return {
             redirect: {
                 destination: '/error?error=' + error.message,

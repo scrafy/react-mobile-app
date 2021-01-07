@@ -6,24 +6,16 @@ import { UnitOfWorkService } from "../unitsofwork";
 export class StateService implements IStateService {
 
     private client: IHttpClient;
-    private headers: Map<string, string>;
-
+   
     constructor() {
 
         this.client = new UnitOfWorkService().getHttpClientService();
-        this.headers = new Map<string, string>();
-        this.headers.set("Content-Type", "application/json");
-        this.headers.set("Accept", "application/json");
-    }
-
-    syncSaveState(state: IState): any {
-        
-        return this.client.syncPostJsonData('api/state/set', state, this.headers, false);
+     
     }
 
     async saveState(state: IState, sync: boolean = false): Promise<any> {
 
-        return this.client.postJsonData('api/state/set', state, this.headers, false);
+        return this.client.postJsonData('api/state/set', state, null, false);
     }
 
     async loadState(token?: string): Promise<IState> {

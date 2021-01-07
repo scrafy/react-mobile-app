@@ -119,29 +119,6 @@ const SingIn = (props: any) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-   /* useEffect(() => {
-
-        return () => {
-
-            setState().catch(error => {
-                router.push('/');
-                tokenService.writeToken(null);
-                dispatch(
-                    notify.showNotification({
-                        type: 'confirm',
-                        title: 'Error',
-                        message: error.message,
-                        onlyOk: true,
-                        textOk: 'OK',
-                    })
-                )
-
-            })
-
-        }
-
-    }, [])*/
-
 
     const cleanForm = () => {
 

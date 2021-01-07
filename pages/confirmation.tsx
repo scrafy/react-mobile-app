@@ -1,5 +1,4 @@
 import React from 'react';
-import { useHistory } from "react-router-dom";
 import { makeStyles } from '@material-ui/core/styles';
 import {
     Grid,
@@ -9,6 +8,9 @@ import {
 } from '@material-ui/core';
 import { Check } from '@material-ui/icons'
 import { useTraductor } from 'src/hooks/Traductor';
+import { createWrapper } from 'next-redux-wrapper';
+import { useStore } from 'react-redux';
+import { useRouter } from 'next/router';
 
 const useStyles = makeStyles({
     container: {
@@ -39,16 +41,16 @@ const useStyles = makeStyles({
 });
 
 
-const BreakDown = (props: any) => {
-    const classes = useStyles();
-    const history = useHistory();
-    const traductor = useTraductor();
+const Confirmation = (props: any) => {
 
+    const classes = useStyles();
+    const traductor = useTraductor();
+    const router = useRouter();
 
 
     const onClickButton = (e: any) => {
 
-        history.push('/home');
+        router.push('/home');
     }
 
     return (
@@ -89,4 +91,9 @@ const BreakDown = (props: any) => {
     )
 };
 
-export default BreakDown;
+export async function getServerSideProps(ctx: any) {
+
+    return { props: {} }
+}
+
+export default createWrapper(useStore).withRedux(Confirmation);

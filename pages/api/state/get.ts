@@ -29,6 +29,9 @@ const getState = async (req: NextApiRequest, res: NextApiResponse) => {
             const data: any = await db.get("SELECT state from State WHERE userId = ?", userId);
             db.close();
             res.statusCode = 200;
+            res.setHeader('Cache-control', `no-cache, must-revalidate`);
+            res.setHeader('Pragma', `no-cache`);
+            res.setHeader('Expires', `Sat, 26 Jul 1997 05:00:00 GMT`);
             res.json({ resp: (data && data.state) || null });
 
         } catch (error) {

@@ -15,11 +15,11 @@ import {
     Paper,
 } from '@material-ui/core';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-//import pedidoE_logo from '/pedidoE-72x72.png';
 import ErrorFormManager from 'src/presentation/helpers/ErrorFormManager';
 import { useTraductor } from 'src/hooks/Traductor';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useStore } from 'react-redux';
 import notify from 'src/redux/notifications/actions';
+import { createWrapper } from 'next-redux-wrapper'
 
 
 const useStyles = makeStyles(() => createStyles({
@@ -117,7 +117,7 @@ const SingUp = (props: any) => {
                 notify.showNotification({
                     type: 'confirm',
                     title: 'Info',
-                    message: traductor('cuenta_creada', {onlyfirst:true}),
+                    message: traductor('cuenta_creada', { onlyfirst: true }),
                     onlyOk: true,
                     textOk: 'OK',
                     onOk: () => {
@@ -174,8 +174,8 @@ const SingUp = (props: any) => {
                         component="h1"
                         variant="h5"
                     >
-                        {traductor('cuenta_nueva', {uppercase:true})}
-                  </Typography>
+                        {traductor('cuenta_nueva', { uppercase: true })}
+                    </Typography>
                     <Container component="main" maxWidth="xs">
                         <TextField
                             error={validationErrors.Email ? true : false}
@@ -267,4 +267,9 @@ const SingUp = (props: any) => {
 
 }
 
-export default SingUp
+export async function getServerSideProps(ctx: any) {
+
+    return { props: {} }
+}
+
+export default createWrapper(useStore).withRedux(SingUp);

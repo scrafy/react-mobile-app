@@ -10,14 +10,13 @@ import {
     Paper,
 } from '@material-ui/core';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-//import pedidoE_logo from '/pedidoE-72x72.png';
-import { useCheckTokenValid } from 'src/hooks/CheckTokenSession';
 import ErrorFormManager from 'src/presentation/helpers/ErrorFormManager'
 import notify from 'src/redux/notifications/actions';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useStore } from 'react-redux';
 import { useTraductor } from 'src/hooks/Traductor';
 import { IEmail, IServerResponse } from 'src/domain/interfaces';
 import { Email } from 'src/domain/models';
+import { createWrapper } from 'next-redux-wrapper';
 
 
 const useStyles = makeStyles(() => createStyles({
@@ -80,9 +79,6 @@ const RecoverPassword = (props: any) => {
     const classes = useStyles();
     const dispatch = useDispatch();
     const traductor = useTraductor();
-
-
-    useCheckTokenValid();
 
 
     const onSubmit = () => {
@@ -178,5 +174,12 @@ const RecoverPassword = (props: any) => {
 
 }
 
-export default RecoverPassword
+export async function getServerSideProps(ctx: any) {
+
+    return { props: {} }
+}
+
+
+export default createWrapper(useStore).withRedux(RecoverPassword);
+
 

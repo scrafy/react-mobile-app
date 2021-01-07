@@ -247,7 +247,7 @@ const ProductList = ({ initProducts, initCategories, cart }) => {
                     setIsViewingFavs(true);
                     setNextPage(1);
                     products.length = 0;
-                    setProducts(OrderProducts(resp.ServerData?.Data));
+                    setProducts(OrderProducts(updateProductsState(resp.ServerData?.Data)));
                 } else {
                     setIsViewingFavs(false);
                     setNavValue(50);
@@ -374,40 +374,12 @@ const ProductList = ({ initProducts, initCategories, cart }) => {
 
     useDeepCompareEffect(() => {
 
-        if (productsInCart.length === 0)
-            dispatch(cartActions(reduxErrorCallback).cleanCart);
-
         AdminBottomNavIcon()
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [productsInCart])
 
-    useEffect(() => {
-
-        return () => {
-
-            try {
-                setState(useStore().getState());
-            }
-            catch (error) {
-
-                router.push('/');
-                tokenService.writeToken(null);
-                dispatch(
-                    notify.showNotification({
-                        type: 'confirm',
-                        title: 'Error',
-                        message: error.message,
-                        onlyOk: true,
-                        textOk: 'OK',
-                    })
-                )
-            }
-
-        }
-
-    }, [])
-
+   
     //#endregion
 
     //#region CALLBACKS
@@ -459,7 +431,7 @@ const ProductList = ({ initProducts, initCategories, cart }) => {
                         message: message.message,
                         onClose: () => { },
                         onOk: () => {
-                            dispatch(cartActions(reduxErrorCallback).saveCenterToCart(centerSelected));
+                            dispatch(cartActions(reduxErrorCallback).saveCenterToCart(centerSelected)).then(() => setState(useStore().getState()));
                         },
                         textClose: traductor('no_cambiar_centro', { onlyfirst: true }),
                         textOk: traductor('cambiar_centro', { onlyfirst: true })
@@ -480,7 +452,7 @@ const ProductList = ({ initProducts, initCategories, cart }) => {
                             dispatch(cartActions(reduxErrorCallback).cleanCart);
                             dispatch(cartActions(reduxErrorCallback).saveCenterToCart(centerSelected));
                             dispatch(cartActions(reduxErrorCallback).saveSupplierToCart(suppliers?.find((s: ISeller) => s.id === message.product.sellerId) || null));
-                            dispatch(cartActions(reduxErrorCallback).saveProductToCart(message.product));
+                            dispatch(cartActions(reduxErrorCallback).saveProductToCart(message.product)).then(() => setState(useStore().getState()));
                             UpdateProducts(message.product);
                         },
                         textClose: traductor('no_añadir_producto', { onlyfirst: true }),
@@ -500,7 +472,7 @@ const ProductList = ({ initProducts, initCategories, cart }) => {
                         onOk: () => {
                             dispatch(cartActions(reduxErrorCallback).deleteProductsFromCart);
                             dispatch(cartActions(reduxErrorCallback).saveSupplierToCart(suppliers?.find((s: ISeller) => s.id === message.product.sellerId) || null));
-                            dispatch(cartActions(reduxErrorCallback).saveProductToCart(message.product));
+                            dispatch(cartActions(reduxErrorCallback).saveProductToCart(message.product)).then(() => setState(useStore().getState()));
                             UpdateProducts(message.product);
                         },
                         textClose: traductor('no_añadir_producto', { onlyfirst: true }),
@@ -596,7 +568,7 @@ const ProductList = ({ initProducts, initCategories, cart }) => {
                         else
                             dispatch(cartActions(reduxErrorCallback).saveCenterToCart(centerSelected));
 
-                        dispatch(cartActions(reduxErrorCallback).saveSupplierToCart(suppliers?.find((s: ISeller) => s.id === product.sellerId) || null));
+                        dispatch(cartActions(reduxErrorCallback).saveSupplierToCart(suppliers?.find((s: ISeller) => s.id === product.sellerId) || null)).then(() => setState(useStore().getState()));
                         UpdateProducts(product);
                     }
 
@@ -614,13 +586,17 @@ const ProductList = ({ initProducts, initCategories, cart }) => {
                 })
             else {
                 UpdateProducts(product);
-                dispatch(cartActions(reduxErrorCallback).saveProductToCart(product));
+                dispatch(cartActions(reduxErrorCallback).saveProductToCart(product)).then(() => setState(useStore().getState()));
 
             }
 
         }
         else {
-            dispatch(cartActions(reduxErrorCallback).deleteProductFromCart(product));
+            dispatch(cartActions(reduxErrorCallback).deleteProductFromCart(product)).then(() => {
+
+                if (productsInCart.length - 1 === 0)
+                    dispatch(cartActions(reduxErrorCallback).cleanCart).then(() => setState(useStore().getState()));
+            });
             UpdateProducts(product);
         }
 
@@ -771,6 +747,7 @@ const ProductList = ({ initProducts, initCategories, cart }) => {
 
 export async function getServerSideProps({ req }) {
 
+
     try {
 
         let state: IState;
@@ -802,7 +779,7 @@ export async function getServerSideProps({ req }) {
         products = await new UnitOfWorkUseCase().getSearchProductUseCase().searchProducts(search, 1, req.cookies["session"]);
         categories = await new UnitOfWorkUseCase().getCategoriesUseCase().getCategories(search.catalogId, search.centerId, req.cookies["session"]);
         return {
-            props: { initProducts: (products.ServerData?.Data.length > 0 && _.orderBy(products.ServerData?.Data) || [], ['name'], ['asc']), initCategories: categories.ServerData?.Data, cart: state.cart }
+            props: { initProducts: _.orderBy(products.ServerData?.Data, ['name'], ['asc']), initCategories: categories.ServerData?.Data, cart: state.cart }
         };
     }
     catch (error) {

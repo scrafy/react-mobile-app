@@ -32,7 +32,7 @@ export default (errorCallback: (error: string) => void): any => {
             }
         },
 
-        saveCatalog: (catalog: ICatalog | null) => (dispatch: any) => {
+        saveCatalog: (catalog: ICatalog | null) => async (dispatch: any) => {
 
             try {
                 dispatch({

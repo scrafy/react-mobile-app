@@ -17,7 +17,10 @@ export class HttpClient implements IHttpClient {
 
             headers: {
                 "Content-Type": "application/json",
-                "Accept": "application/json"
+                "Accept": "application/json",
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+                'Expires': '0',
             }
         });
 
@@ -168,41 +171,6 @@ export class HttpClient implements IHttpClient {
 
 
         return resp;
-
-    }
-
-    syncPostJsonData(url: string, body: any, headers: Map<string, string> | null, addToken: boolean | null): any {
-
-        let headersObject: { [k: string]: string } = {};
-        const token: string | null = this.tokenService.readToken();
-
-        if (!headers)
-            headers = new Map<string, string>();
-
-        if (addToken)
-
-            if (token)
-                headers.set("Authorization", `Bearer ${token}`);
-            else
-                throw new JwtTokenError(ErrorCode.JWT_TOKEN_INVALID, "It was not possible to read token from local storage");
-
-
-        if (headers && headers.size > 0)
-            this.setHeaders(headers, headersObject)
-
-        const resp = fetch(url, {
-            headers: headersObject,
-            method: 'POST',
-            body:JSON.stringify(body)
-
-        });
-        
-
-        if (resp.headers['x-session-token'])
-            this.tokenService.writeToken(resp.headers['x-session-token']);
-
-
-        return resp.json();
 
     }
 

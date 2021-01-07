@@ -12,15 +12,14 @@ import {
 } from '@material-ui/core';
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import { TaxType } from 'src/domain/enums';
-import { IProduct, IOrder } from 'src/domain/interfaces';
-import { IState } from 'src/infraestructure/interfaces';
-const { decode } = require('url-encode-decode');
-import AppBar from 'src/presentation/components/appBar/AppBar';
+import { IProduct, IOrder, IServerResponse } from 'src/domain/interfaces';
+import AppBar from './components/appBar/AppBar';
 import { useTraductor } from 'src/hooks/Traductor';
 import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 import { useRouter } from 'next/router';
 import { createWrapper } from 'next-redux-wrapper';
-import { ITokenService, IStateService } from 'src/infraestructure/interfaces';
+import { ITokenService } from 'src/infraestructure/interfaces';
+import { UnitOfWorkUseCase } from 'src/application/unitsofwork/UnitOfWorkUseCase';
 
 const useStyles = makeStyles({
 
@@ -49,7 +48,7 @@ const BreakDown = (props: any) => {
     const router = useRouter();
     const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
 
-    const products: IProduct[] = props.cart.products;
+    const products: IProduct[] = props.order.products;
     const order: IOrder = props.order;
 
     useEffect(() => {
@@ -62,7 +61,7 @@ const BreakDown = (props: any) => {
         });
 
     }, [])
-   
+
 
     return (
         <>
@@ -127,8 +126,6 @@ export async function getServerSideProps({ req, query }) {
 
     try {
 
-        let state: IState;
-
         const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
         if (!req.cookies["session"])
             throw new Error("Session not valid");
@@ -136,17 +133,11 @@ export async function getServerSideProps({ req, query }) {
         if (!tokenService.isTokenValid(req.cookies["session"]))
             throw new Error("Session not valid");
 
-        const stateService: IStateService = new UnitOfWorkService().getStateService();
-        const resp: any = await stateService.loadState(req.cookies["session"]);
-
-        if (resp.data.resp === null)
-            state = { selectedCenter: null, selectedCatalog: null, cart: { products: [], center: null, supplier: null } }
-
-        else
-            state = JSON.parse(resp.data.resp);
-
+        const useCase: UnitOfWorkUseCase = new UnitOfWorkUseCase().getOrdersDoneUseCase();
+        const orders: IServerResponse<IOrder[]> = await useCase.getOrdersDone(query.order, req.cookies["session"]);
+        
         return {
-            props: { cart: state.cart, order: JSON.parse(decode(query.order)) }
+            props: { order:orders.ServerData.Data[0] }
         };
     }
     catch (error) {

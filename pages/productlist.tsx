@@ -5,14 +5,14 @@ import { ICategory, ICenter, IPaginationData, IProduct, IServerResponse, ISeller
 import { SearchProduct } from 'src/domain/models';
 import { Grid, List, FormControl, InputLabel, Select, MenuItem, Container } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import BottomNavigation from 'src/presentation/components/navigation/BottomNavigation';
-import AppBar from 'src/presentation/components/appBar/AppBar';
+import BottomNavigation from './components/navigation/BottomNavigation';
+import AppBar from './components/appBar/AppBar';
 import { Favorite, ShoppingCart, LocalOffer, AddShoppingCart } from '@material-ui/icons';
 import { UnitOfWorkUseCase } from 'src/application/unitsofwork/UnitOfWorkUseCase';
 import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 import { ICatalog, ISearchProduct } from 'src//domain/interfaces';
-import Product from 'src/presentation/components/product/Product';
-import ProductCard from 'src/presentation/components/product/ProductCard';
+import Product from './components/product/Product';
+import ProductCard from './components/product/ProductCard';
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import useCheckProductCart, { ICheckProductCallback, TypeMessageCheckProduct } from 'src/hooks/CheckProductCart';
 import cartActions from 'src/redux/cart/actions';
@@ -26,6 +26,7 @@ import { useRouter } from 'next/router'
 import useStore from 'src/redux/store';
 import { IStateService, ITokenService } from 'src/infraestructure/interfaces';
 import useSetState from 'src/hooks/SetState';
+import GetState from './helpers/GetState';
 
 
 const useStyles = makeStyles({
@@ -379,7 +380,7 @@ const ProductList = ({ initProducts, initCategories, cart }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [productsInCart])
 
-   
+
     //#endregion
 
     //#region CALLBACKS
@@ -755,21 +756,7 @@ export async function getServerSideProps({ req }) {
         let categories: IServerResponse<ICategory[]>;
         const search: ISearchProduct = new SearchProduct();
 
-        const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
-        if (!req.cookies["session"])
-            throw new Error("Session not valid");
-
-        if (!tokenService.isTokenValid(req.cookies["session"]))
-            throw new Error("Session not valid");
-
-        const stateService: IStateService = new UnitOfWorkService().getStateService();
-        const resp: any = await stateService.loadState(req.cookies["session"]);
-
-        if (resp.data.resp === null)
-            state = { selectedCenter: null, selectedCatalog: null, cart: { products: [], center: null, supplier: null } }
-
-        else
-            state = JSON.parse(resp.data.resp);
+        state = await GetState(req);
 
         if (state.selectedCenter === null || state.selectedCatalog === null)
             throw new Error("Center or catalog is null")

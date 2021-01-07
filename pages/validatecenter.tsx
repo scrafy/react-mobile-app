@@ -10,7 +10,7 @@ import {
     Paper,
 } from '@material-ui/core';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import ErrorFormManager from 'src/presentation/helpers/ErrorFormManager'
+import  ErrorFormManager  from './helpers/ErrorFormManager'
 import notify from 'src/redux/notifications/actions';
 import { useDispatch } from 'react-redux';
 import useStore from 'src/redux/store';
@@ -81,8 +81,6 @@ const ValidateCenter = (props: any) => {
     const classes = useStyles();
     const dispatch = useDispatch();
     const traductor = useTraductor();
-
-
 
 
     const onSubmit = () => {

@@ -5,13 +5,13 @@ import { ICategory, ICenter, IPaginationData, IProduct, IServerResponse, ISeller
 import { SearchProduct } from 'src/domain/models'
 import { Grid, List, FormControl, InputLabel, Select, MenuItem, Container } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import BottomNavigation from 'src/presentation/components/navigation/BottomNavigation';
-import AppBar from 'src/presentation/components/appBar/AppBar';
+import BottomNavigation from 'pages/components/navigation/BottomNavigation';
+import AppBar from 'pages/components/appBar/AppBar';
 import { Favorite, ShoppingCart, LocalOffer, AddShoppingCart } from '@material-ui/icons';
 import { UnitOfWorkUseCase } from 'src/application/unitsofwork/UnitOfWorkUseCase';
 import { ISearchProduct } from 'src//domain/interfaces';
-import Product from 'src/presentation/components/product/Product';
-import ProductCard from 'src/presentation/components/product/ProductCard';
+import Product from 'pages/components/product/Product';
+import ProductCard from 'pages/components/product/ProductCard';
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import useCheckProductCart, { ICheckProductCallback, TypeMessageCheckProduct } from 'src/hooks/CheckProductCart';
 import cartActions from 'src/redux/cart/actions';

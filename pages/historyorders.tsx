@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useHistory } from 'react-router-dom';
 import { useMediaQuery } from '@material-ui/core';
 import notify from 'src/redux/notifications/actions';
 import cartActions from 'src/redux/cart/actions';
+import centerActions from 'src/redux/centres/actions';
+import catalogActions from 'src/redux/catalogs/actions';
 import { UnitOfWorkUseCase } from 'src/application/unitsofwork/';
-import AppBar from 'src/presentation/components/appBar/AppBar';
-import OrderList from 'src/presentation/components/orders/OrderList';
-import OrderCards from 'src/presentation/components/orders/OrderCards';
-import CartTooltip from 'src/presentation/components/tooltip/CartTooltip';
-import TopNavigation from 'src/presentation/components/navigation/TopNavigation';
+import AppBar from 'pages/components/appBar/AppBar';
+import OrderList from 'pages/components/orders/OrderList';
+import OrderCards from 'pages/components/orders/OrderCards';
+import CartTooltip from 'pages/components/tooltip/CartTooltip';
+import TopNavigation from 'pages/components/navigation/TopNavigation';
 import { ICenter, IOrder, IProduct, ISeller, IServerResponse } from 'src/domain/interfaces';
 import { useTraductor } from 'src/hooks/Traductor';
 import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
@@ -18,19 +19,22 @@ import { useRouter } from 'next/router'
 import useStore from 'src/redux/store';
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
+import useSetState from 'src/hooks/SetState';
 
-function HistoryOrders() {
+
+function HistoryOrders(props: any) {
 
     const reduxErrorCallback = useReduxErrorCallback();
     const router = useRouter();
     const dispatch = useDispatch();
     const isDesktop = useMediaQuery('(min-width:900px)');
     const traductor = useTraductor();
-    const service:UnitOfWorkService = new UnitOfWorkService();
+    const service: UnitOfWorkService = new UnitOfWorkService();
+    const useCase: UnitOfWorkUseCase = new UnitOfWorkUseCase();
 
     const ordersNavOptions = [
         {
-            label: traductor('enviados', {onlyfirst:true}),
+            label: traductor('enviados', { onlyfirst: true }),
             icon: null,
         }
         /*{
@@ -42,20 +46,22 @@ function HistoryOrders() {
     const [orders, setOrders] = useState([] as IOrder[])
     const [navValue, setNavValue] = useState(0);
 
-    const centers:ICenter[] = useSelector((state: any) => state.centers.centers);
-    const suppliers:ISeller[] = useSelector((state: any) => state.providers);
+    const centers: ICenter[] = useSelector((state: any) => state.centers.centers);
+    const suppliers: ISeller[] = useSelector((state: any) => state.providers);
     const cartProducts: IProduct[] = useSelector((state: any) => state.cart.products);
+    const setState = useSetState();
+
 
     useEffect(() => {
 
-        useCheckTokenInvalid(() => {            
-            
-            service.getTokenService().removeToken();            
+        useCheckTokenInvalid(() => {
+
+            service.getTokenService().removeToken();
             router.push("/");
 
         });
 
-        new UnitOfWorkUseCase().getOrdersDoneUseCase().getOrdersDone().then((resp: IServerResponse<Array<IOrder>>) => {
+        useCase.getOrdersDoneUseCase().getOrdersDone().then((resp: IServerResponse<Array<IOrder>>) => {
 
             if (resp.ServerData?.Data && resp.ServerData?.Data.length === 0) {
 
@@ -63,10 +69,10 @@ function HistoryOrders() {
                     notify.showNotification({
                         type: 'confirm',
                         title: 'Info',
-                        message: traductor('sin_pedidos', {onlyfirst:true}),
+                        message: traductor('sin_pedidos', { onlyfirst: true }),
                         onlyOk: true,
                         textOk: 'OK',
-                        onOk:() => {
+                        onOk: () => {
                             router.push('/home')
                         }
                     })
@@ -86,72 +92,81 @@ function HistoryOrders() {
                 })
             )
         })
-        
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    const onSeeBreakDown = (order:IOrder) => {
+    const onSeeBreakDown = (order: IOrder) => {
 
-        router.push('/breakdown')
+        router.push({
+
+            pathname: '/breakdown',
+            query: {
+                order: order.id
+            }
+
+        }, '/breakdown');
     }
 
-    const onRepeatOrder = (order:IOrder) => {
-        
-        dispatch(cartActions(reduxErrorCallback).saveCenterToCart(centers.find( (c:ICenter) => c.id === order.center.centerId ) || null));
-        dispatch(cartActions(reduxErrorCallback).saveSupplierToCart(suppliers.find( (s:ISeller) => s.id === order.seller.sellerId ) || null));
-        order.products.forEach( (p:IProduct) => {
-            dispatch(cartActions(reduxErrorCallback).saveProductToCart(p));
+
+    const onRepeatOrder = (order: IOrder) => {
+
+        const center: ICenter | null = centers.find((c: ICenter) => c.id === order.center.centerId) || null;
+        const supplier: ISeller | null = suppliers.find((s: ISeller) => s.id === order.seller.sellerId) || null;
+
+        dispatch(cartActions(reduxErrorCallback).cleanCart).then(() => {
+
+            order.products.forEach((p: IProduct) => {
+                dispatch(cartActions(reduxErrorCallback).saveProductToCart(p));
+            });
+            dispatch(cartActions(reduxErrorCallback).saveCenterToCart(center));
+            dispatch(cartActions(reduxErrorCallback).saveSupplierToCart(supplier)).then(() => {
+
+                setState(useStore().getState());
+                router.push('/checkout');
+            });
+
         });
-        router.push('/checkout');
-        
-    }
 
-    const onHandleNavChangeOption = (_: any, selected: any) => {
-        setNavValue(selected)
-
-        switch (selected) {
-            case 0:
-                
-                break;
-
-            case 1:
-                
-                break;
-        }
     }
 
     return (
         <>
             <AppBar
                 handleClickMenu={(e: any) => router.back()}
-                title={traductor('listado_orders', {onlyfirst:true})}
+                title={traductor('listado_orders', { onlyfirst: true })}
                 searchEnabled={false}
                 backIcon={true}
-                showSwitch = {false}
+                showSwitch={false}
             />
             <TopNavigation
                 style={{ position: 'inherit' }}
-                handleNavChange={onHandleNavChangeOption}
+                handleNavChange={() => { }}
                 navValue={navValue}
                 navOptions={ordersNavOptions}
 
             />
             {
                 isDesktop
-                ?   <OrderCards 
-                        orders={orders} 
+                    ? <OrderCards
+                        orders={orders}
                         onSeeBreakDown={onSeeBreakDown}
                         onRepeatOrder={onRepeatOrder}
                     />
-                :   <OrderList 
-                        orders={orders} 
+                    : <OrderList
+                        orders={orders}
                         onSeeBreakDown={onSeeBreakDown}
                         onRepeatOrder={onRepeatOrder}
                     />
             }
-            {cartProducts.length && <CartTooltip color='orange' bottom = {'20px'}/>}
+            {cartProducts.length && <CartTooltip color='orange' bottom={'20px'} />}
         </>
     )
+}
+
+export async function getServerSideProps(ctx: any) {
+
+    return { props: {} }
 }
 
 export default createWrapper(useStore).withRedux(HistoryOrders);

@@ -49,6 +49,6 @@
     "pages/CheckOut.tsx",
     "pages/Centers.tsx",
     ".pages/breakdown.tsx",
-    "pages/api"
+    "pages/api", "pages/translationsfiles", "pages/helpers", "pages/components"
   ]
 }

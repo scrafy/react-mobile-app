@@ -12,9 +12,9 @@ export class GetOrdersDoneUseCase extends BaseUseCase implements IGetOrdersDoneU
         this.orderRepository = orderRepository;
     }
 
-    getOrdersDone(): Promise<IServerResponse<IOrder[]>> {
+    getOrdersDone(orderId?: number, token?: string): Promise<IServerResponse<IOrder[]>> {
 
-        return this.orderRepository.getOrdersDone();
+        return this.orderRepository.getOrdersDone(orderId, token);
     }
 
 }

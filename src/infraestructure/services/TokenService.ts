@@ -39,7 +39,7 @@ export class TokenService implements ITokenService {
 
             if (token) {
                 jwt.verify(token, process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 })
-                Cookies.set("session", token, { expires: 365, path: '' })
+                Cookies.set("session", token, { expires: 7, path: '' })
             } else {
                 Cookies.remove("session", { path: '' })
             }

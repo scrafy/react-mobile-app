@@ -1,6 +1,6 @@
 import Actions from "./enumActions";
 import Languaje from "./languajes";
-import languajes from "src/presentation/translationsfiles";
+import languajes from "pages/translationsfiles";
 
 const setLanguaje = (languaje: Languaje) => (dispatch: any) => {
 

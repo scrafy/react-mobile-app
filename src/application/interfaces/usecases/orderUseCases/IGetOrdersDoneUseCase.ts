@@ -2,6 +2,6 @@ import { IServerResponse,  IOrder } from "../../../../domain/interfaces"
 
 export interface IGetOrdersDoneUseCase {
 
-    getOrdersDone(): Promise<IServerResponse<Array<IOrder>>>
+    getOrdersDone(orderId?:number, token?: string): Promise<IServerResponse<Array<IOrder>>>
 
 }

@@ -1,6 +1,6 @@
 import { BaseRepository } from "./BaseRepository";
-import {  IHttpClient, IOrderRepository } from "../interfaces";
-import { IServerResponse,  IOrder } from "../../domain/interfaces";
+import { IHttpClient, IOrderRepository } from "../interfaces";
+import { IServerResponse, IOrder } from "../../domain/interfaces";
 
 
 export class OrderRepository extends BaseRepository implements IOrderRepository {
@@ -25,10 +25,25 @@ export class OrderRepository extends BaseRepository implements IOrderRepository 
         }
     }
 
-    async getOrdersDone(): Promise<IServerResponse<Array<IOrder>>> {
+    async getOrdersDone(orderId?: number, token?: string): Promise<IServerResponse<Array<IOrder>>> {
+
+        let resp: IServerResponse<Array<IOrder>>;
 
         try {
-            const resp = await this.httpClient.getJsonResponse(`${process.env.REACT_APP_ENDPOINT_URL}/Orders/OrdersDone`, null, true);
+            if (token)
+
+                if (orderId && !isNaN(orderId))
+
+                    resp = await this.httpClient.tokenGetJsonResponse(`${process.env.REACT_APP_ENDPOINT_URL}/Orders/OrdersDone/${orderId}`, null, token);
+                else
+                    resp = await this.httpClient.tokenGetJsonResponse(`${process.env.REACT_APP_ENDPOINT_URL}/Orders/OrdersDone`, null, token);
+            else
+
+                if (orderId && !isNaN(orderId))
+                    resp = await this.httpClient.getJsonResponse(`${process.env.REACT_APP_ENDPOINT_URL}/Orders/OrdersDone/${orderId}`, null, true);
+                else
+                    resp = await this.httpClient.getJsonResponse(`${process.env.REACT_APP_ENDPOINT_URL}/Orders/OrdersDone`, null, true);
+
             return resp.data;
         }
         catch (error) {

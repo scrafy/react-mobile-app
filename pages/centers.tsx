@@ -2,10 +2,10 @@ import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useMediaQuery } from '@material-ui/core';
 import { ICenter, IProduct } from 'src/domain/interfaces';
-import AppBar from 'src/presentation/components/appBar/AppBar';
-import CartTooltip from 'src/presentation/components/tooltip/CartTooltip';
-import CenterList from 'src/presentation/components/centers/CenterList';
-import CenterCards from 'src/presentation/components/centers/CenterCards';
+import AppBar from 'pages/components/appBar/AppBar';
+import CartTooltip from 'pages/components/tooltip/CartTooltip';
+import CenterList from 'pages/components/centers/CenterList';
+import CenterCards from 'pages/components/centers/CenterCards';
 import { useTraductor } from 'src/hooks/Traductor';
 import useStore from 'src/redux/store';
 import { createWrapper } from 'next-redux-wrapper';
@@ -57,6 +57,12 @@ function Centers() {
         </>
     )
 }
+
+export async function getServerSideProps(ctx: any) {
+
+    return { props: {} }
+}
+
 
 export default createWrapper(useStore).withRedux(Centers);
 

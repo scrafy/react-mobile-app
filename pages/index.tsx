@@ -1,5 +1,4 @@
 import { IServerResponse } from 'src/domain/interfaces'
-import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 import { UnitOfWorkUseCase } from 'src/application/unitsofwork';
 import { createWrapper } from "next-redux-wrapper";
 import { Login } from 'src/domain/models/Login';
@@ -16,14 +15,13 @@ import {
 } from '@material-ui/core';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { useCheckTokenValid } from 'src/hooks/CheckTokenSession';
-import ErrorFormManager from 'src/presentation/helpers/ErrorFormManager'
+import ErrorFormManager from './helpers/ErrorFormManager'
 import notify from 'src/redux/notifications/actions';
 import { useDispatch } from 'react-redux';
 import { useTraductor } from 'src/hooks/Traductor';
-import useSetState from 'src/hooks/SetState';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { IStateService, ITokenService } from "src/infraestructure/interfaces";
+
 
 
 const useStyles = makeStyles(() => createStyles({
@@ -97,24 +95,23 @@ const SingIn = (props: any) => {
     const classes = useStyles();
     const dispatch = useDispatch();
     const traductor = useTraductor();
-    const setState = useSetState();
-    const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
-
 
 
     useEffect(() => {
+
+        console.log(props)
 
         useCheckTokenValid(() => {
             router.push("/home");
         });
 
-        /* if (props.location.state && props.location.state.username) {
- 
-             setUserName(props.location.state.username)
-             setPassword('');
-             // history.replace('', null);
- 
-         }*/
+        if (props.username) {
+
+            setUserName(props.username)
+            setPassword('');
+
+
+        }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -160,12 +157,6 @@ const SingIn = (props: any) => {
         })
     }
 
-    const onSignUp = (event: any) => {
-
-        router.push({
-            pathname: '/validatecenter'
-        });
-    }
 
     return (
 
@@ -231,7 +222,7 @@ const SingIn = (props: any) => {
                             <Grid item>
                                 {traductor("nuevo_usuario", { capitalize: true })}
                                 {' '}
-                                <Link href="" variant="body2" onClick={onSignUp} className={classes.signup}>
+                                <Link href="" variant="body2" onClick={(e: any) => router.push('/validatecenter')} className={classes.signup}>
                                     {traductor("crear_cuenta", { onlyfirst: true })}
                                 </Link>
                             </Grid>
@@ -245,9 +236,9 @@ const SingIn = (props: any) => {
 
 }
 
-export async function getServerSideProps(ctx: any) {
+export async function getServerSideProps({ query }) {
 
-    return { props: {} };
+    return { props: { username: query.username || null } };
 }
 
 

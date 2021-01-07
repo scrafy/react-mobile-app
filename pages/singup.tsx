@@ -3,7 +3,6 @@ import { IServerResponse } from 'src/domain/interfaces'
 import { UnitOfWorkUseCase } from 'src/application/unitsofwork/UnitOfWorkUseCase'
 import { IUserProfile } from 'src/domain/interfaces'
 import { Account } from 'src/domain/models/Account'
-import { useHistory } from "react-router-dom";
 import {
     Avatar,
     Button,
@@ -20,7 +19,7 @@ import { useTraductor } from 'src/hooks/Traductor';
 import { useDispatch, useStore } from 'react-redux';
 import notify from 'src/redux/notifications/actions';
 import { createWrapper } from 'next-redux-wrapper'
-
+import { useRouter } from 'next/router';
 
 const useStyles = makeStyles(() => createStyles({
     background: {
@@ -83,7 +82,7 @@ const SingUp = (props: any) => {
     const [activationCode, setActivationCode] = useState('')
     const [validationErrors, setValidationErrors] = useState({} as any)
 
-    const history = useHistory();
+    const router = useRouter();
     const classes = useStyles();
     const traductor = useTraductor();
     const dispatch = useDispatch();
@@ -91,10 +90,10 @@ const SingUp = (props: any) => {
 
     useEffect(() => {
 
-        if (props.location.state && props.location.state.email && props.location.state.activationcode) {
+        if (props.email && props.activationcode) {
 
-            setEmail(props.location.state.email);
-            setActivationCode(props.location.state.activationcode);
+            setEmail(props.email);
+            setActivationCode(props.activationcode);
 
         }
 
@@ -121,9 +120,9 @@ const SingUp = (props: any) => {
                     onlyOk: true,
                     textOk: 'OK',
                     onOk: () => {
-                        history.push({
+                        router.push({
                             pathname: '/',
-                            state: { username: response.ServerData?.Data.username }
+                            query: { username: response.ServerData?.Data.username }
                         });
                     }
                 })
@@ -155,7 +154,7 @@ const SingUp = (props: any) => {
 
     const onSingIn = () => {
 
-        history.push('/')
+        router.push('/')
     }
 
     return (
@@ -267,9 +266,9 @@ const SingUp = (props: any) => {
 
 }
 
-export async function getServerSideProps(ctx: any) {
+export async function getServerSideProps({ query }) {
 
-    return { props: {} }
+    return { props: { email: query.email || null, activationcode: query.activationcode || null } }
 }
 
 export default createWrapper(useStore).withRedux(SingUp);

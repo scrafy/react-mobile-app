@@ -20,25 +20,25 @@ import {
 } from '@material-ui/icons';
 import { ICenter, IProduct, IServerResponse, ISeller, IOrder, IOrderCenterInfo, IOrderSellerInfo, ISearchProduct } from 'src/domain/interfaces'
 import { Order, OrderCenterInfo, OrderSellerInfo, SearchProduct } from 'src/domain/models'
-import AppBar from 'pages/components/appBar/AppBar';
+import AppBar from 'src/presentation/components/appBar/AppBar';
 import { UnitOfWorkUseCase } from 'src/application/unitsofwork/UnitOfWorkUseCase';
-import Product from 'pages/components/product/Product';
-import ProductCard from 'pages/components/product/ProductCard';
+import Product from 'src/presentation/components/product/Product';
+import ProductCard from 'src/presentation/components/product/ProductCard';
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import cartActions from 'src/redux/cart/actions';
 import notify from 'src/redux/notifications/actions';
 import { Currency } from 'src/domain/enums';
 import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
-import TopNavigation from 'pages/components/navigation/TopNavigation';
+import TopNavigation from 'src/presentation/components/navigation/TopNavigation';
 import { useTraductor } from 'src/hooks/Traductor';
 import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 import { useRouter } from 'next/router'
 import useStore from 'src/redux/store';
 import { createWrapper } from 'next-redux-wrapper';
-import { IState, IStateService, ITokenService } from 'src/infraestructure/interfaces';
+import { IState } from 'src/infraestructure/interfaces';
 import useSetState from 'src/hooks/SetState';
 const { encode } = require('url-encode-decode');
-import GetState from './helpers/GetState';
+import GetState from 'src/presentation/helpers/GetState';
 
 
 const useStyles = makeStyles({

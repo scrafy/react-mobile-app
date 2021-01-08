@@ -10,12 +10,12 @@ import { ICatalog, IProduct } from 'src/domain/interfaces';
 import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 import { Container, Grid, Button } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import BottomNavigation from 'pages/components/navigation/BottomNavigation';
-import AppBar from 'pages/components/appBar/AppBar';
-import Drawer from 'pages/components/drawer/TemporaryDrawer';
-import CartTooltip from 'pages/components/tooltip/CartTooltip';
-import SimpleSelect from 'pages/components/dropdowns/SimpleSelect';
-import { IStateService, ITokenService } from 'src/infraestructure/interfaces';
+import BottomNavigation from 'src/presentation/components/navigation/BottomNavigation';
+import AppBar from 'src/presentation/components/appBar/AppBar';
+import Drawer from 'src/presentation/components/drawer/TemporaryDrawer';
+import CartTooltip from 'src/presentation/components/tooltip/CartTooltip';
+import SimpleSelect from 'src/presentation/components/dropdowns/SimpleSelect';
+import { IState, IStateService, ITokenService } from 'src/infraestructure/interfaces';
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import notify from 'src/redux/notifications/actions';
 import cartActions from 'src/redux/cart/actions';
@@ -33,7 +33,7 @@ import { useTraductor } from 'src/hooks/Traductor';
 import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 import { createWrapper } from 'next-redux-wrapper';
 import useSetState from 'src/hooks/SetState';
-
+import GetState from 'src/presentation/helpers/GetState';
 
 const useStyles = makeStyles({
     button: {
@@ -330,21 +330,10 @@ const Home = (props: any) => {
 export async function getServerSideProps(ctx: any) {
 
     try {
+        let state: IState;
+        state = await GetState(ctx.req);
 
-        const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
-        if (!ctx.req.cookies["session"])
-            throw new Error("Session not valid");
-
-        if (!tokenService.isTokenValid(ctx.req.cookies["session"]))
-            throw new Error("Session not valid");
-
-        const stateService: IStateService = new UnitOfWorkService().getStateService();
-        const resp: any = await stateService.loadState(ctx.req.cookies["session"]);
-
-        if (resp.data.resp === null)
-            return { props: { state: { selectedCenter: null, selectedCatalog: null, cart: { products: [], center: null, supplier: null } } } }
-        else
-            return { props: { state: JSON.parse(resp.data.resp) } };
+        return { props: { state } };
     }
     catch (error) {
         console.log(error)

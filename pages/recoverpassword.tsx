@@ -10,7 +10,7 @@ import {
     Paper,
 } from '@material-ui/core';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import ErrorFormManager from 'pages/helpers/ErrorFormManager'
+import ErrorFormManager from 'src/presentation/helpers/ErrorFormManager'
 import notify from 'src/redux/notifications/actions';
 import { useDispatch, useStore } from 'react-redux';
 import { useTraductor } from 'src/hooks/Traductor';

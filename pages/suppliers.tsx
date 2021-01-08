@@ -2,10 +2,10 @@ import React, { useEffect } from 'react'
 import { useSelector } from 'react-redux';
 import { useMediaQuery } from '@material-ui/core';
 import { IProduct, ISeller } from 'src/domain/interfaces';
-import AppBar from 'pages/components/appBar/AppBar';
-import CartTooltip from 'pages/components/tooltip/CartTooltip';
-import SupplierList from 'pages/components/supplier/SupplierList';
-import SupplierCards from 'pages/components/supplier/SupplierCards';
+import AppBar from 'src/presentation/components/appBar/AppBar';
+import CartTooltip from 'src/presentation/components/tooltip/CartTooltip';
+import SupplierList from 'src/presentation/components/supplier/SupplierList';
+import SupplierCards from 'src/presentation/components/supplier/SupplierCards';
 import { useTraductor } from 'src/hooks/Traductor';
 import { useRouter } from 'next/router'
 import useStore from 'src/redux/store';

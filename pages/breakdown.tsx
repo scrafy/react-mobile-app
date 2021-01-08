@@ -13,7 +13,7 @@ import {
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import { TaxType } from 'src/domain/enums';
 import { IProduct, IOrder, IServerResponse } from 'src/domain/interfaces';
-import AppBar from './components/appBar/AppBar';
+import AppBar from 'src/presentation/components/appBar/AppBar';
 import { useTraductor } from 'src/hooks/Traductor';
 import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 import { useRouter } from 'next/router';

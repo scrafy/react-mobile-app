@@ -746,11 +746,16 @@ const ProductList = ({ initProducts, initCategories, cart, search }) => {
 }
 
 
-export async function getServerSideProps({ req, query }) {
+export async function getServerSideProps(ctx: any) {
 
 
     try {
-        const isgeneralSearch: boolean = query.search || false;
+
+        const { req, query } = ctx;
+        let isgeneralSearch: boolean = false;
+        if (req.headers['referer'].includes("checkout") || (req.headers['referer'].includes("home") && query.search))
+            isgeneralSearch = true;
+
         let state: IState;
         let products: IServerResponse<IProduct[]>;
         let categories: IServerResponse<ICategory[]>;

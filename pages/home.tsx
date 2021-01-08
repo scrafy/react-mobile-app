@@ -217,7 +217,7 @@ const Home = (props: any) => {
 
         if (searchValue !== '')
 
-            router.push({ pathname: '/productlist', query: { search: searchValue } });
+            router.push({ pathname: '/productlist', query: { search: searchValue } }, '');
         else
             dispatch(
                 notify.showNotification({

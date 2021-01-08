@@ -6,7 +6,7 @@
     "init-db": "rm -rf database && cd db && ts-node setup.ts",
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "npm run init-db && npm run build && next start"
   },
   "dependencies": {
     "@date-io/moment": "^1.3.13",

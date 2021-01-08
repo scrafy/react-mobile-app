@@ -374,7 +374,7 @@ const CheckOut = (props: any) => {
 
     const onBuyMoreClick = () => {
 
-        router.push('/generalproductsearch');
+        router.push('/productlist');
     }
 
     const onClearCartClick = () => {

@@ -27,7 +27,7 @@ export class OrderRepository extends BaseRepository implements IOrderRepository 
 
     async getOrdersDone(orderId?: number, token?: string): Promise<IServerResponse<Array<IOrder>>> {
 
-        let resp: IServerResponse<Array<IOrder>>;
+        let resp: any;
 
         try {
             if (token)

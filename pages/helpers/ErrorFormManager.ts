@@ -1,4 +1,4 @@
-export default (error: any, callBackError: (errorMessage: string, validationErrors?: any) => void) => {
+const ErrorFormManager = (error: any, callBackError: (errorMessage: string, validationErrors?: any) => void) => {
 
     if (error.errorCode !== undefined) {
 
@@ -21,3 +21,5 @@ export default (error: any, callBackError: (errorMessage: string, validationErro
         callBackError(error.message);
     }
 }
+
+export default ErrorFormManager;

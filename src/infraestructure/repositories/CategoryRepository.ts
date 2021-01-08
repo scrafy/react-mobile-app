@@ -11,10 +11,16 @@ export class CategoryRepository extends BaseRepository implements ICategoryRepos
         this.httpClient = httpClient;
     }
 
-    async getCategoriesByCentre(centreId: number): Promise<IServerResponse<ICategory[]>> {
+    async getCategoriesByCentre(centreId: number, token?: string): Promise<IServerResponse<ICategory[]>> {
 
+        let resp: any;
         try {
-            const resp = await this.httpClient.getJsonResponse(`${process.env.REACT_APP_ENDPOINT_URL}/Category/${centreId}/categoriesbycentre`, null, true);
+
+            if (token)
+                resp = await this.httpClient.tokenGetJsonResponse(`${process.env.REACT_APP_ENDPOINT_URL}/Category/${centreId}/categoriesbycentre`, null, token);
+            else
+                resp = await this.httpClient.getJsonResponse(`${process.env.REACT_APP_ENDPOINT_URL}/Category/${centreId}/categoriesbycentre`, null, true);
+                
             return resp.data;
         }
         catch (error) {

@@ -24,7 +24,7 @@ import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 import { createWrapper } from 'next-redux-wrapper';
 import { useRouter } from 'next/router'
 import useStore from 'src/redux/store';
-import { IStateService, ITokenService } from 'src/infraestructure/interfaces';
+import { ITokenService } from 'src/infraestructure/interfaces';
 import useSetState from 'src/hooks/SetState';
 import GetState from './helpers/GetState';
 
@@ -55,7 +55,7 @@ const useStyles = makeStyles({
 });
 
 
-const ProductList = ({ initProducts, initCategories, cart }) => {
+const ProductList = ({ initProducts, initCategories, cart, search }) => {
 
     const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
 
@@ -111,7 +111,7 @@ const ProductList = ({ initProducts, initCategories, cart }) => {
 
     const [cardView, setCardView] = useState(false);
     const [isViewingFavs, setIsViewingFavs] = useState(false);
-    const [searchValue, setSearchValue] = useState('');
+    const [searchValue, setSearchValue] = useState(search);
     const [navOptionsToShow, setNavOptionsToShow] = useState(navOptions);
     const [pagination, setPagination] = useState({} as IPaginationData | undefined);
     const [nextPage, setNextPage] = useState(1);
@@ -238,7 +238,7 @@ const ProductList = ({ initProducts, initCategories, cart }) => {
         if (catalogSelected !== null && centerSelected !== null) {
 
             const search: ISearchProduct = new SearchProduct();
-            search.catalogId = catalogSelected.id;
+            search.catalogId = catalogSelected && catalogSelected.id;
             search.centerId = centerSelected.id;
 
 
@@ -283,7 +283,7 @@ const ProductList = ({ initProducts, initCategories, cart }) => {
     const SearchProducts = (page: number = 1, _searchValue = searchValue, _category = categorySelected) => {
 
         const search: ISearchProduct = new SearchProduct();
-        search.catalogId = catalogSelected.id;
+        search.catalogId = catalogSelected && catalogSelected.id;
         search.centerId = centerSelected.id;
 
         if (_category === 'todas')
@@ -746,11 +746,11 @@ const ProductList = ({ initProducts, initCategories, cart }) => {
 }
 
 
-export async function getServerSideProps({ req }) {
+export async function getServerSideProps({ req, query }) {
 
 
     try {
-
+        const isgeneralSearch: boolean = query.search || false;
         let state: IState;
         let products: IServerResponse<IProduct[]>;
         let categories: IServerResponse<ICategory[]>;
@@ -758,15 +758,26 @@ export async function getServerSideProps({ req }) {
 
         state = await GetState(req);
 
-        if (state.selectedCenter === null || state.selectedCatalog === null)
-            throw new Error("Center or catalog is null")
+        if (!isgeneralSearch && (state.selectedCenter === null || state.selectedCatalog === null))
+            throw new Error("Ha de seleccionar un centro y un catálogo")
 
-        search.catalogId = state.selectedCatalog.id;
+        if (isgeneralSearch && state.selectedCenter === null)
+            throw new Error("Ha de seleccionar un centro")
+
+        if (!isgeneralSearch)
+            search.catalogId = state.selectedCatalog.id;
+
         search.centerId = state.selectedCenter.id;
+        search.nameProduct = query.search;
         products = await new UnitOfWorkUseCase().getSearchProductUseCase().searchProducts(search, 1, req.cookies["session"]);
-        categories = await new UnitOfWorkUseCase().getCategoriesUseCase().getCategories(search.catalogId, search.centerId, req.cookies["session"]);
+
+        if (isgeneralSearch)
+            categories = await new UnitOfWorkUseCase().getCategoriesByCentreUseCase().getCategoriesByCentre(search.centerId, req.cookies["session"]);
+        else
+            categories = await new UnitOfWorkUseCase().getCategoriesUseCase().getCategories(search.catalogId, search.centerId, req.cookies["session"]);
+
         return {
-            props: { initProducts: _.orderBy(products.ServerData?.Data, ['name'], ['asc']), initCategories: categories.ServerData?.Data, cart: state.cart }
+            props: { search: query.search || null, initProducts: _.orderBy(products.ServerData?.Data, ['name'], ['asc']), initCategories: categories.ServerData?.Data, cart: state.cart }
         };
     }
     catch (error) {

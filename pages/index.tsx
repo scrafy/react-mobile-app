@@ -15,7 +15,7 @@ import {
 } from '@material-ui/core';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { useCheckTokenValid } from 'src/hooks/CheckTokenSession';
-import ErrorFormManager from './helpers/ErrorFormManager'
+import ErrorFormManager from './helpers/ErrorFormManager';
 import notify from 'src/redux/notifications/actions';
 import { useDispatch } from 'react-redux';
 import { useTraductor } from 'src/hooks/Traductor';

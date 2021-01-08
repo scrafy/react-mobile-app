@@ -217,7 +217,7 @@ const Home = (props: any) => {
 
         if (searchValue !== '')
 
-            router.push('/generalproductsearch');
+            router.push({ pathname: '/productlist', query: { search: searchValue } });
         else
             dispatch(
                 notify.showNotification({
@@ -232,6 +232,7 @@ const Home = (props: any) => {
     }
 
     const onOpenPersonalInfoCallback = () => {
+        alert("asdad")
         dispatch(
             notify.showNotification({
                 type: 'personal'
@@ -339,7 +340,7 @@ export async function getServerSideProps(ctx: any) {
 
         const stateService: IStateService = new UnitOfWorkService().getStateService();
         const resp: any = await stateService.loadState(ctx.req.cookies["session"]);
-        
+
         if (resp.data.resp === null)
             return { props: { state: { selectedCenter: null, selectedCatalog: null, cart: { products: [], center: null, supplier: null } } } }
         else

@@ -12,8 +12,8 @@ export class GetCategoriesByCentreUseCase extends BaseUseCase implements IGetCat
         super();
         this.categoryRepository = categoryRepository;
     }
-    
-    getCategoriesByCentre(centreId: number): Promise<IServerResponse<ICategory[]>> {
-        return this.categoryRepository.getCategoriesByCentre(centreId);
+
+    getCategoriesByCentre(centreId: number, token?: string): Promise<IServerResponse<ICategory[]>> {
+        return this.categoryRepository.getCategoriesByCentre(centreId, token);
     }
 }

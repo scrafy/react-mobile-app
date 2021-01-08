@@ -15,7 +15,7 @@ import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 import { UnitOfWorkUseCase } from 'src/application/unitsofwork';
 import { ChangePassword } from 'src/domain/models';
 import { IChangePassword, IServerResponse } from 'src/domain/interfaces';
-import ErrorFormManager from 'src/presentation/helpers/ErrorFormManager';
+import ErrorFormManager from 'pages/helpers/ErrorFormManager';
 import { useHistory } from 'react-router-dom';
 import { useTraductor } from 'src/hooks/Traductor';
 

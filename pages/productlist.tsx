@@ -17,16 +17,11 @@ import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import useCheckProductCart, { ICheckProductCallback, TypeMessageCheckProduct } from 'src/hooks/CheckProductCart';
 import cartActions from 'src/redux/cart/actions';
 import notify from 'src/redux/notifications/actions';
-import { IState } from 'src/infraestructure/interfaces';
 import useDeepCompareEffect from 'use-deep-compare-effect';
 import { useTraductor } from 'src/hooks/Traductor';
 import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
-import { createWrapper } from 'next-redux-wrapper';
 import { useRouter } from 'next/router'
-import useStore from 'src/redux/store';
 import { ITokenService } from 'src/infraestructure/interfaces';
-import useSetState from 'src/hooks/SetState';
-import GetState from 'src/presentation/helpers/GetState';
 
 
 const useStyles = makeStyles({
@@ -55,7 +50,7 @@ const useStyles = makeStyles({
 });
 
 
-const ProductList = ({ initProducts, initCategories, cart, search }) => {
+const ProductList = (props: any) => {
 
     const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
 
@@ -67,7 +62,7 @@ const ProductList = ({ initProducts, initCategories, cart, search }) => {
     const traductor = useTraductor();
     const checkProductCart = useCheckProductCart();
     const router = useRouter();
-    const setState = useSetState();
+
 
     //#endregion
 
@@ -106,22 +101,26 @@ const ProductList = ({ initProducts, initCategories, cart, search }) => {
         traductor('precio_bajo', { onlyfirst: true })
     ];
 
+    const updateProductsState = (_products: IProduct[]): IProduct[] => {
 
-    //#region USE_STATE
 
-    const [cardView, setCardView] = useState(false);
-    const [isViewingFavs, setIsViewingFavs] = useState(false);
-    const [searchValue, setSearchValue] = useState(search);
-    const [navOptionsToShow, setNavOptionsToShow] = useState(navOptions);
-    const [pagination, setPagination] = useState({} as IPaginationData | undefined);
-    const [nextPage, setNextPage] = useState(1);
-    const [navValue, setNavValue] = useState(50);
-    const [products, setProducts] = useState(initProducts);
-    const [filterSelected, setFilterSelected] = useState('A-Z');
-    const [categorySelected, setCategory] = useState('todas' as string);
-    const [categories, setCategories] = useState(initCategories);
+        const products: IProduct[] = _.cloneDeep(_products);
 
-    //#endregion
+        if (products.length > 0) {
+
+            productsInCart.forEach((p: IProduct) => {
+
+                let product: IProduct | undefined = products.find((pr: IProduct) => pr.id === p.id);
+                if (product) {
+                    product.amount = p.amount;
+                    product.amountsByDay = p.amountsByDay;
+                }
+
+            })
+
+        }
+        return products;
+    };
 
     //#region USE_SELECTORS
 
@@ -130,6 +129,24 @@ const ProductList = ({ initProducts, initCategories, cart, search }) => {
     const suppliers: ISeller[] | null = useSelector((state: any) => state.providers);
     const centerInCart: ICenter | null = useSelector((state: any) => state.cart.center);
     const productsInCart: IProduct[] = useSelector((state: any) => state.cart.products);
+
+    //#endregion
+
+
+    //#region USE_STATE
+
+    const [cardView, setCardView] = useState(false);
+    const [isViewingFavs, setIsViewingFavs] = useState(false);
+    const [searchValue, setSearchValue] = useState(props.search);
+    const [navOptionsToShow, setNavOptionsToShow] = useState(navOptions);
+    const [pagination, setPagination] = useState({} as IPaginationData | undefined);
+    const [nextPage, setNextPage] = useState(1);
+    const [navValue, setNavValue] = useState(50);
+    const [products, setProducts] = useState(updateProductsState(props.initProducts));
+    const [filterSelected, setFilterSelected] = useState('A-Z');
+    const [categorySelected, setCategory] = useState('todas' as string);
+    const [categories, setCategories] = useState(props.initCategories);
+
 
     //#endregion
 
@@ -210,28 +227,6 @@ const ProductList = ({ initProducts, initCategories, cart, search }) => {
         products[index] = product;
         setProducts([...products]);
     }
-
-    const updateProductsState = (_products: IProduct[]): IProduct[] => {
-
-        const products: IProduct[] = _.cloneDeep(_products);
-
-        if (products.length > 0) {
-
-            productsInCart.forEach((p: IProduct) => {
-
-                let product: IProduct | undefined = products.find((pr: IProduct) => pr.id === p.id);
-                if (product) {
-                    product.amount = p.amount;
-                    product.amountsByDay = p.amountsByDay;
-                }
-
-            })
-
-
-        }
-
-        return products;
-    };
 
     const SearchFavorites = () => {
 
@@ -343,8 +338,6 @@ const ProductList = ({ initProducts, initCategories, cart, search }) => {
 
     useEffect(() => {
 
-        dispatch(cartActions(reduxErrorCallback).saveCart(cart)).then(() => { setProducts(updateProductsState(products)); });
-
         useCheckTokenInvalid(() => {
 
             tokenService.removeToken();
@@ -432,7 +425,7 @@ const ProductList = ({ initProducts, initCategories, cart, search }) => {
                         message: message.message,
                         onClose: () => { },
                         onOk: () => {
-                            dispatch(cartActions(reduxErrorCallback).saveCenterToCart(centerSelected)).then(() => setState(useStore().getState()));
+                            dispatch(cartActions(reduxErrorCallback).saveCenterToCart(centerSelected));
                         },
                         textClose: traductor('no_cambiar_centro', { onlyfirst: true }),
                         textOk: traductor('cambiar_centro', { onlyfirst: true })
@@ -453,7 +446,7 @@ const ProductList = ({ initProducts, initCategories, cart, search }) => {
                             dispatch(cartActions(reduxErrorCallback).cleanCart);
                             dispatch(cartActions(reduxErrorCallback).saveCenterToCart(centerSelected));
                             dispatch(cartActions(reduxErrorCallback).saveSupplierToCart(suppliers?.find((s: ISeller) => s.id === message.product.sellerId) || null));
-                            dispatch(cartActions(reduxErrorCallback).saveProductToCart(message.product)).then(() => setState(useStore().getState()));
+                            dispatch(cartActions(reduxErrorCallback).saveProductToCart(message.product));
                             UpdateProducts(message.product);
                         },
                         textClose: traductor('no_añadir_producto', { onlyfirst: true }),
@@ -473,7 +466,7 @@ const ProductList = ({ initProducts, initCategories, cart, search }) => {
                         onOk: () => {
                             dispatch(cartActions(reduxErrorCallback).deleteProductsFromCart);
                             dispatch(cartActions(reduxErrorCallback).saveSupplierToCart(suppliers?.find((s: ISeller) => s.id === message.product.sellerId) || null));
-                            dispatch(cartActions(reduxErrorCallback).saveProductToCart(message.product)).then(() => setState(useStore().getState()));
+                            dispatch(cartActions(reduxErrorCallback).saveProductToCart(message.product));
                             UpdateProducts(message.product);
                         },
                         textClose: traductor('no_añadir_producto', { onlyfirst: true }),
@@ -557,7 +550,7 @@ const ProductList = ({ initProducts, initCategories, cart, search }) => {
 
         if (product.amount > 0) {
 
-            if (productsInCart.findIndex((p: IProduct) => p.id === product.id) === -1)
+            if (productsInCart.findIndex((p: IProduct) => p.id === product.id) === -1) {
 
                 checkProductCart(product, onMessageInfo).then((resp: boolean | void) => {
 
@@ -569,7 +562,7 @@ const ProductList = ({ initProducts, initCategories, cart, search }) => {
                         else
                             dispatch(cartActions(reduxErrorCallback).saveCenterToCart(centerSelected));
 
-                        dispatch(cartActions(reduxErrorCallback).saveSupplierToCart(suppliers?.find((s: ISeller) => s.id === product.sellerId) || null)).then(() => setState(useStore().getState()));
+                        dispatch(cartActions(reduxErrorCallback).saveSupplierToCart(suppliers?.find((s: ISeller) => s.id === product.sellerId) || null));
                         UpdateProducts(product);
                     }
 
@@ -585,9 +578,10 @@ const ProductList = ({ initProducts, initCategories, cart, search }) => {
                         })
                     )
                 })
+            }
             else {
                 UpdateProducts(product);
-                dispatch(cartActions(reduxErrorCallback).saveProductToCart(product)).then(() => setState(useStore().getState()));
+                dispatch(cartActions(reduxErrorCallback).saveProductToCart(product));
 
             }
 
@@ -596,7 +590,7 @@ const ProductList = ({ initProducts, initCategories, cart, search }) => {
             dispatch(cartActions(reduxErrorCallback).deleteProductFromCart(product)).then(() => {
 
                 if (productsInCart.length - 1 === 0)
-                    dispatch(cartActions(reduxErrorCallback).cleanCart).then(() => setState(useStore().getState()));
+                    dispatch(cartActions(reduxErrorCallback).cleanCart);
             });
             UpdateProducts(product);
         }
@@ -751,28 +745,25 @@ export async function getServerSideProps(ctx: any) {
 
     try {
 
-        const { req, query } = ctx;
-        let isgeneralSearch: boolean = false;
-        if (req.headers['referer'].includes("checkout") || (req.headers['referer'].includes("home") && query.search))
-            isgeneralSearch = true;
-
-        let state: IState;
         let products: IServerResponse<IProduct[]>;
         let categories: IServerResponse<ICategory[]>;
         const search: ISearchProduct = new SearchProduct();
+        const { req, query } = ctx;
+        let isgeneralSearch: boolean = false;
 
-        state = await GetState(req);
+        if (req.headers['referer'] && req.headers['referer'].includes("checkout") || (req.headers['referer'] && req.headers['referer'].includes("home") && query.search))
+            isgeneralSearch = true;
 
-        if (!isgeneralSearch && (state.selectedCenter === null || state.selectedCatalog === null))
+        if (!isgeneralSearch && (query.centerId === undefined || query.catalogId === undefined))
             throw new Error("Ha de seleccionar un centro y un catálogo")
 
-        if (isgeneralSearch && state.selectedCenter === null)
+        if (isgeneralSearch && query.centerId === undefined)
             throw new Error("Ha de seleccionar un centro")
 
         if (!isgeneralSearch)
-            search.catalogId = state.selectedCatalog.id;
+            search.catalogId = query.catalogId;
 
-        search.centerId = state.selectedCenter.id;
+        search.centerId = query.centerId;
         search.nameProduct = query.search;
         products = await new UnitOfWorkUseCase().getSearchProductUseCase().searchProducts(search, 1, req.cookies["session"]);
 
@@ -782,7 +773,7 @@ export async function getServerSideProps(ctx: any) {
             categories = await new UnitOfWorkUseCase().getCategoriesUseCase().getCategories(search.catalogId, search.centerId, req.cookies["session"]);
 
         return {
-            props: { search: query.search || null, initProducts: _.orderBy(products.ServerData?.Data, ['name'], ['asc']), initCategories: categories.ServerData?.Data, cart: state.cart }
+            props: { search: query.search || null, initProducts: _.orderBy(products.ServerData?.Data, ['name'], ['asc']), initCategories: categories.ServerData?.Data }
         };
     }
     catch (error) {
@@ -796,7 +787,7 @@ export async function getServerSideProps(ctx: any) {
 
 }
 
-export default createWrapper(useStore).withRedux(ProductList);
+export default ProductList;
 
 
 

@@ -90,4 +90,4 @@ export async function getServerSideProps({ query }) {
     return { props: { errorMessage: query.error } };
 }
 
-export default createWrapper(useStore).withRedux(Error);
+export default Error;

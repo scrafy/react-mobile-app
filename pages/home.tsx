@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import useStore from 'src/redux/store';
+import store from "src/redux/store";
 import { get } from 'lodash';
 import { ICenter } from 'src/domain/interfaces/ICenter';
 import centerActions from 'src/redux/centres/actions';
@@ -15,7 +15,7 @@ import AppBar from 'src/presentation/components/appBar/AppBar';
 import Drawer from 'src/presentation/components/drawer/TemporaryDrawer';
 import CartTooltip from 'src/presentation/components/tooltip/CartTooltip';
 import SimpleSelect from 'src/presentation/components/dropdowns/SimpleSelect';
-import { IState, IStateService, ITokenService } from 'src/infraestructure/interfaces';
+import { ITokenService } from 'src/infraestructure/interfaces';
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import notify from 'src/redux/notifications/actions';
 import cartActions from 'src/redux/cart/actions';
@@ -31,9 +31,8 @@ import PermIdentityIcon from '@material-ui/icons/PermIdentity';
 import _ from 'lodash';
 import { useTraductor } from 'src/hooks/Traductor';
 import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
-import { createWrapper } from 'next-redux-wrapper';
-import useSetState from 'src/hooks/SetState';
-import GetState from 'src/presentation/helpers/GetState';
+
+
 
 const useStyles = makeStyles({
     button: {
@@ -67,7 +66,8 @@ const Home = (props: any) => {
             action: (e: any) => openIncidenceCallback(),
         }
     ];
-    const navOptions = [
+
+    const _navOptions = [
 
         {
             label: traductor("proveedores", { onlyfirst: true }),
@@ -88,17 +88,19 @@ const Home = (props: any) => {
     const router = useRouter();
     const dispatch = useDispatch();
     const reduxErrorCallback = useReduxErrorCallback();
-    const setState = useSetState();
+    const state: any = store.getState();
 
     const centers: ICenter[] = useSelector((state: any) => state.centers.centers);
     const centerCatalogs: ICatalog[] = useSelector((state: any) => state.catalogs.catalogs);
     const cartProducts: IProduct[] = useSelector((state: any) => state.cart.products);
     const centerInCart: ICenter = useSelector((state: any) => state.cart.center);
+
     const [searchValue, setSearchValue] = useState('');
     const [navValue, setNavValue] = useState(50);
     const [drawer, setDrawer] = useState(false);
     const [centerSelected, setCenterSelected] = useState(null as ICenter | null);
     const [catalogSelected, setCatalogSelected] = useState(null as ICatalog | null);
+    const [navOptions, setNavOptions] = useState(_navOptions);
 
 
     useEffect(() => {
@@ -112,19 +114,16 @@ const Home = (props: any) => {
 
         dispatch(centerActions(reduxErrorCallback).getCenters);
         dispatch(getProviders(reduxErrorCallback).getProviders);
-        dispatch(centerActions(reduxErrorCallback).saveCenter(props.state.selectedCenter));
-        dispatch(catalogActions(reduxErrorCallback).saveCatalog(props.state.selectedCatalog));
-        dispatch(cartActions(reduxErrorCallback).saveCart(props.state.cart));
-        setCenterSelected(props.state.selectedCenter);
-        setCatalogSelected(props.state.selectedCatalog);
+        setCenterSelected(state.centers.selectedCenter);
+        setCatalogSelected(state.catalogs.selectedCatalog);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     useEffect(() => {
 
-        if (props.state.selectedCenter !== null)
-            dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(props.state.selectedCenter.id));
+        if (state.centers.selectedCenter !== null)
+            dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(state.centers.selectedCenter.id));
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
@@ -136,7 +135,7 @@ const Home = (props: any) => {
             if (centers.length > 0)
 
                 if (!_.some(centers, ((c: ICenter) => c.id === centerInCart.id)))
-                    dispatch(cartActions(reduxErrorCallback).cleanCart).then(() => setState(useStore().getState()));
+                    dispatch(cartActions(reduxErrorCallback).cleanCart);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [centers])
@@ -150,7 +149,7 @@ const Home = (props: any) => {
             const selectedCenter: ICenter | undefined = centers.find((center: ICenter) => center.id === parseInt(event.target.value));
             if (selectedCenter) {
 
-                dispatch(centerActions(reduxErrorCallback).saveCenter(selectedCenter)).then(() => setState(useStore().getState()));
+                dispatch(centerActions(reduxErrorCallback).saveCenter(selectedCenter));
                 setCenterSelected(selectedCenter);
             }
 
@@ -158,10 +157,9 @@ const Home = (props: any) => {
         }
         else {
 
-            dispatch(centerActions(reduxErrorCallback).saveCenter(null)).then(() => setState(useStore().getState()));
+            dispatch(centerActions(reduxErrorCallback).saveCenter(null));
             dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(null));
             setCenterSelected(null);
-            setCatalogSelected(null);
         }
 
     }
@@ -172,13 +170,13 @@ const Home = (props: any) => {
             const selectedCatalog: ICatalog | undefined = centerCatalogs.find((catalog: ICatalog) => catalog.id === parseInt(event.target.value));
             if (selectedCatalog) {
 
-                dispatch(catalogActions(reduxErrorCallback).saveCatalog(selectedCatalog)).then(() => setState(useStore().getState()));
+                dispatch(catalogActions(reduxErrorCallback).saveCatalog(selectedCatalog));
                 setCatalogSelected(selectedCatalog);
             }
         }
         else {
 
-            dispatch(catalogActions(reduxErrorCallback).saveCatalog(null)).then(() => setState(useStore().getState()));
+            dispatch(catalogActions(reduxErrorCallback).saveCatalog(null));
             setCatalogSelected(null);
         }
 
@@ -189,7 +187,7 @@ const Home = (props: any) => {
         if (catalogSelected === null)
             return;
 
-        router.push('/productlist');
+        router.push({ pathname: '/productlist', query: { centerId: centerSelected?.id, catalogId: catalogSelected?.id } });
     }
 
     const onHandleNavChangeOption = (_: any, selected: any) => {
@@ -217,7 +215,7 @@ const Home = (props: any) => {
 
         if (searchValue !== '')
 
-            router.push({ pathname: '/productlist', query: { search: searchValue } }, '');
+            router.push({ pathname: '/productlist', query: { search: searchValue, centerId: centerSelected?.id } });
         else
             dispatch(
                 notify.showNotification({
@@ -329,21 +327,8 @@ const Home = (props: any) => {
 
 export async function getServerSideProps(ctx: any) {
 
-    try {
-        let state: IState;
-        state = await GetState(ctx.req);
-
-        return { props: { state } };
-    }
-    catch (error) {
-        console.log(error)
-        return {
-            redirect: {
-                destination: '/error?error=' + error.message,
-                permanent: false,
-            },
-        }
-    }
+    return { props: {} };
 }
 
-export default createWrapper(useStore).withRedux(Home);
+export default Home;
+

@@ -1,8 +1,6 @@
 import { IServerResponse } from 'src/domain/interfaces'
 import { UnitOfWorkUseCase } from 'src/application/unitsofwork';
-import { createWrapper } from "next-redux-wrapper";
 import { Login } from 'src/domain/models/Login';
-import useStore from 'src/redux/store';
 import {
     Avatar,
     Button,
@@ -21,8 +19,9 @@ import { useDispatch } from 'react-redux';
 import { useTraductor } from 'src/hooks/Traductor';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-
-
+import userActions from "src/redux/users/actions";
+import { ITokenService } from 'src/infraestructure/interfaces';
+import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 
 const useStyles = makeStyles(() => createStyles({
     background: {
@@ -96,10 +95,10 @@ const SingIn = (props: any) => {
     const dispatch = useDispatch();
     const traductor = useTraductor();
 
+    const useCase = new UnitOfWorkUseCase().getLoginUseCase();
+    const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
 
     useEffect(() => {
-
-        console.log(props)
 
         useCheckTokenValid(() => {
             router.push("/home");
@@ -125,13 +124,15 @@ const SingIn = (props: any) => {
 
     const onLogin = () => {
 
-        const useCase = new UnitOfWorkUseCase().getLoginUseCase();
+
         const login = new Login();
         login.username = userName;
         login.password = password;
         useCase.login(login).then((response: IServerResponse<string>) => {
 
             router.push('/home');
+            dispatch(userActions((error) => { }).saveUserId(tokenService.getClaimFromToken("userId")));
+
 
         }).catch((error) => {
 
@@ -241,8 +242,8 @@ export async function getServerSideProps({ query }) {
     return { props: { username: query.username || null } };
 }
 
+export default SingIn;
 
-export default createWrapper(useStore).withRedux(SingIn);
 
 
 

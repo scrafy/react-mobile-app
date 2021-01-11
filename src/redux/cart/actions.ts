@@ -1,7 +1,7 @@
 import { ICenter, IProduct, ISeller } from "src/domain/interfaces";
 import Actions from "./enumActions";
 import lodash from 'lodash';
-import useStore from 'src/redux/store/index';
+import store from 'src/redux/store/index';
 import { ICart } from "src/infraestructure/interfaces";
 
 
@@ -13,7 +13,7 @@ export default (errorCallback: (error: string) => void): any => {
 
             try {
 
-                let products = [...useStore().getState().cart.products];
+                let products = [...store.getState().cart.products];
                 if (products.length === 0)
                     products.push(product);
                 else {
@@ -44,7 +44,7 @@ export default (errorCallback: (error: string) => void): any => {
 
             try {
 
-                let products: IProduct[] = [...useStore().getState().cart.products];
+                let products: IProduct[] = [...store.getState().cart.products];
 
                 if (products.length === 0)
                     return;

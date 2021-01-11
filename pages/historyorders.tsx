@@ -12,9 +12,8 @@ import TopNavigation from 'src/presentation/components/navigation/TopNavigation'
 import { ICenter, IOrder, IProduct, ISeller, IServerResponse } from 'src/domain/interfaces';
 import { useTraductor } from 'src/hooks/Traductor';
 import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
-import { createWrapper } from 'next-redux-wrapper';
 import { useRouter } from 'next/router'
-import useStore from 'src/redux/store';
+import store from 'src/redux/store';
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 import useSetState from 'src/hooks/SetState';
@@ -120,7 +119,7 @@ function HistoryOrders(props: any) {
             dispatch(cartActions(reduxErrorCallback).saveCenterToCart(center));
             dispatch(cartActions(reduxErrorCallback).saveSupplierToCart(supplier)).then(() => {
 
-                setState(useStore().getState());
+                setState(store.getState());
                 router.push('/checkout');
             });
 
@@ -167,5 +166,5 @@ export async function getServerSideProps(ctx: any) {
     return { props: {} }
 }
 
-export default createWrapper(useStore).withRedux(HistoryOrders);
+export default HistoryOrders;
 

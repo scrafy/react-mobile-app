@@ -233,5 +233,5 @@ export async function getServerSideProps(ctx: any) {
 }
 
 
-export default createWrapper(useStore).withRedux(Incidence);
+export default Incidence;
 

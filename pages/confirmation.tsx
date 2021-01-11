@@ -96,4 +96,4 @@ export async function getServerSideProps(ctx: any) {
     return { props: {} }
 }
 
-export default createWrapper(useStore).withRedux(Confirmation);
+export default Confirmation;

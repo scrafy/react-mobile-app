@@ -12,6 +12,7 @@ export default (state = initialState, action: any) => {
 
     switch (action.type) {
         case Actions.SAVE_PRODUCT_TO_CART:
+            
             return { ...state, products: action.payload };
         case Actions.DELETE_PRODUCT_FROM_CART:
             return { ...state, products: action.payload };

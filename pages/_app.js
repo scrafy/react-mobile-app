@@ -4,12 +4,13 @@ import Head from "next/head";
 import { ThemeProvider } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import { Provider } from "react-redux";
-import useStore from 'src/redux/store';
+import store from "src/redux/store";
+import { persistor } from "src/redux/store";
+import { PersistGate } from "redux-persist/integration/react";
 
-const MyApp = (props) => {
 
-  const { Component, pageProps } = props;
-  const store = useStore();
+const App = ({ Component, pageProps }) => {
+  //const store = makeStore({ languaje: pageProps.lang });
 
   React.useEffect(() => {
     // Remove the server-side injected CSS.
@@ -32,16 +33,18 @@ const MyApp = (props) => {
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <CssBaseline />
         <Provider store={store}>
-          <Component {...pageProps} />
+          <PersistGate loading={<div>loading</div>} persistor={persistor}>
+            <Component {...pageProps} />
+          </PersistGate>
         </Provider>
       </ThemeProvider>
     </React.Fragment>
   );
 };
 
-MyApp.propTypes = {
+App.propTypes = {
   Component: PropTypes.elementType.isRequired,
   pageProps: PropTypes.object.isRequired,
 };
 
-export default MyApp;
+export default App;

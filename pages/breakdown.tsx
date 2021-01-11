@@ -151,4 +151,4 @@ export async function getServerSideProps({ req, query }) {
 
 }
 
-export default createWrapper(useStore).withRedux(BreakDown);
+export default BreakDown;

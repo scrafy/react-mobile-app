@@ -271,4 +271,4 @@ export async function getServerSideProps({ query }) {
     return { props: { email: query.email || null, activationcode: query.activationcode || null } }
 }
 
-export default createWrapper(useStore).withRedux(SingUp);
+export default SingUp;

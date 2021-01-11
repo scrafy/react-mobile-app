@@ -235,5 +235,5 @@ export async function getServerSideProps(ctx: any) {
 }
 
 
-export default createWrapper(useStore).withRedux(ValidateCenter);
+export default ValidateCenter;
 

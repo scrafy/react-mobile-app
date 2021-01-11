@@ -18,8 +18,8 @@ import {
     List as ListIcon,
     Event,
 } from '@material-ui/icons';
-import { ICenter, IProduct, IServerResponse, ISeller, IOrder, IOrderCenterInfo, IOrderSellerInfo, ISearchProduct } from 'src/domain/interfaces'
-import { Order, OrderCenterInfo, OrderSellerInfo, SearchProduct } from 'src/domain/models'
+import { ICenter, IProduct, IServerResponse, ISeller, IOrder, IOrderCenterInfo, IOrderSellerInfo } from 'src/domain/interfaces'
+import { Order, OrderCenterInfo, OrderSellerInfo } from 'src/domain/models'
 import AppBar from 'src/presentation/components/appBar/AppBar';
 import { UnitOfWorkUseCase } from 'src/application/unitsofwork/UnitOfWorkUseCase';
 import Product from 'src/presentation/components/product/Product';
@@ -33,12 +33,9 @@ import TopNavigation from 'src/presentation/components/navigation/TopNavigation'
 import { useTraductor } from 'src/hooks/Traductor';
 import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 import { useRouter } from 'next/router'
-import useStore from 'src/redux/store';
-import { createWrapper } from 'next-redux-wrapper';
-import { IState } from 'src/infraestructure/interfaces';
+import store from 'src/redux/store';
 import useSetState from 'src/hooks/SetState';
 const { encode } = require('url-encode-decode');
-import GetState from 'src/presentation/helpers/GetState';
 
 
 const useStyles = makeStyles({
@@ -86,15 +83,15 @@ const CheckOut = (props: any) => {
     const router = useRouter();
     const isDesktop = useMediaQuery('(min-width:900px)');
     const setState = useSetState();
-
+    const state: any = store.getState();
 
     //#endregion
 
     //#region USE_STATE
 
-    const supplier: ISeller = props.cart.supplier;
-    const center: ICenter = props.cart.center;
-    const productsCart: IProduct[] = props.cart.products;
+    const supplier: ISeller = state.cart.supplier;
+    const center: ICenter = state.cart.center;
+    const productsCart: IProduct[] = state.cart.products;
     const [searchValue, setSearchValue] = useState('');
     const [products, setProducts] = useState([] as IProduct[]);
     const [order, setOrder] = useState({} as IOrder);
@@ -136,7 +133,7 @@ const CheckOut = (props: any) => {
         const index: number = products.findIndex((p: IProduct) => p.id === product.id);
         aux.splice(index, 1);
         if (aux.length === 0) {
-            dispatch(cartActions(reduxErrorCallback).cleanCart).then(() => { setState(useStore().getState()) });
+            dispatch(cartActions(reduxErrorCallback).cleanCart);
             router.back();
         }
         else
@@ -329,12 +326,12 @@ const CheckOut = (props: any) => {
 
         if (product.amount > 0) {
 
-            dispatch(cartActions(reduxErrorCallback).saveProductToCart(product)).then(() => setState(useStore().getState()));
+            dispatch(cartActions(reduxErrorCallback).saveProductToCart(product));
             UpdateProducts(product);
         }
         else {
 
-            dispatch(cartActions(reduxErrorCallback).deleteProductFromCart(product)).then(() => setState(useStore().getState()));
+            dispatch(cartActions(reduxErrorCallback).deleteProductFromCart(product));
             DeleteProduct(product);
         }
     }
@@ -352,7 +349,7 @@ const CheckOut = (props: any) => {
                 onOk: () => {
 
                     useCase.getConfirmOrderUseCase().confirmOrder(order).then(resp => {
-                        dispatch(cartActions(reduxErrorCallback).cleanCart).then(() => { setState(useStore().getState()) });
+                        dispatch(cartActions(reduxErrorCallback).cleanCart);
                         router.push('/confirmation')
 
                     }).catch(error => {
@@ -374,7 +371,12 @@ const CheckOut = (props: any) => {
 
     const onBuyMoreClick = () => {
 
-        router.push('/productlist');
+        router.push({
+            pathname: '/productlist',
+            query: {
+                centerId: state.cart.center.id
+            }
+        });
     }
 
     const onClearCartClick = () => {
@@ -387,7 +389,7 @@ const CheckOut = (props: any) => {
                 textOk: 'OK',
                 textClose: traductor('cancelar', { onlyfirst: true }),
                 onOk: () => {
-                    dispatch(cartActions(reduxErrorCallback).cleanCart).then(() => { setState(useStore().getState()) });
+                    dispatch(cartActions(reduxErrorCallback).cleanCart);
                     router.back();
                 }
             })
@@ -639,26 +641,11 @@ const CheckOut = (props: any) => {
     )
 }
 
-export async function getServerSideProps(ctx:any) {
+export async function getServerSideProps(ctx: any) {
 
-    try {
-
-        let state: IState;
-
-        state = await GetState(ctx.req);
-
-        return {
-            props: { cart: state.cart }
-        };
-    }
-    catch (error) {
-        return {
-            redirect: {
-                destination: '/error?error=' + error.message,
-                permanent: false,
-            },
-        }
-    }
+    return {
+        props: {}
+    };
 }
 
-export default createWrapper(useStore).withRedux(CheckOut);
+export default CheckOut;

@@ -64,5 +64,5 @@ export async function getServerSideProps(ctx: any) {
 }
 
 
-export default createWrapper(useStore).withRedux(Centers);
+export default Centers;
 

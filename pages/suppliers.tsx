@@ -8,8 +8,7 @@ import SupplierList from 'src/presentation/components/supplier/SupplierList';
 import SupplierCards from 'src/presentation/components/supplier/SupplierCards';
 import { useTraductor } from 'src/hooks/Traductor';
 import { useRouter } from 'next/router'
-import useStore from 'src/redux/store';
-import { createWrapper } from 'next-redux-wrapper';
+import showNotification from "src/presentation/components/notifications";
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 
@@ -52,6 +51,7 @@ function Suppliers() {
                     : <SupplierList suppliers={suppliers} />
             }
             {cartProducts.length && <CartTooltip color='orange' bottom={'20px'} />}
+            {showNotification()}
         </>
     )
 }

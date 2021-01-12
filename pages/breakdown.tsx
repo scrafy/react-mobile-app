@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useStore } from 'react-redux';
+import showNotification from "src/presentation/components/notifications";
 import { makeStyles } from '@material-ui/core/styles';
 import {
     Paper,
@@ -17,7 +17,6 @@ import AppBar from 'src/presentation/components/appBar/AppBar';
 import { useTraductor } from 'src/hooks/Traductor';
 import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 import { useRouter } from 'next/router';
-import { createWrapper } from 'next-redux-wrapper';
 import { ITokenService } from 'src/infraestructure/interfaces';
 import { UnitOfWorkUseCase } from 'src/application/unitsofwork/UnitOfWorkUseCase';
 
@@ -116,6 +115,7 @@ const BreakDown = (props: any) => {
                     </TableRow>
                 </Table>
             </TableContainer>
+             {showNotification()}
 
         </>
     )

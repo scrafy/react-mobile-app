@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import showNotification from "src/presentation/components/notifications";
 import { useSelector, useDispatch } from 'react-redux';
 import store from "src/redux/store";
 import { get } from 'lodash';
@@ -31,6 +32,7 @@ import PermIdentityIcon from '@material-ui/icons/PermIdentity';
 import _ from 'lodash';
 import { useTraductor } from 'src/hooks/Traductor';
 import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
+
 
 
 
@@ -94,6 +96,7 @@ const Home = (props: any) => {
     const centerCatalogs: ICatalog[] = useSelector((state: any) => state.catalogs.catalogs);
     const cartProducts: IProduct[] = useSelector((state: any) => state.cart.products);
     const centerInCart: ICenter = useSelector((state: any) => state.cart.center);
+    
 
     const [searchValue, setSearchValue] = useState('');
     const [navValue, setNavValue] = useState(50);
@@ -101,6 +104,8 @@ const Home = (props: any) => {
     const [centerSelected, setCenterSelected] = useState(null as ICenter | null);
     const [catalogSelected, setCatalogSelected] = useState(null as ICatalog | null);
     const [navOptions, setNavOptions] = useState(_navOptions);
+
+
 
 
     useEffect(() => {
@@ -230,7 +235,7 @@ const Home = (props: any) => {
     }
 
     const onOpenPersonalInfoCallback = () => {
-        alert("asdad")
+
         dispatch(
             notify.showNotification({
                 type: 'personal'
@@ -240,8 +245,11 @@ const Home = (props: any) => {
 
     const onOpenErrorFormCallback = () => router.push("/incidence");
 
+
     return (
+
         <>
+
             <AppBar
                 handleClickMenu={(e: any) => setDrawer(true)}
                 handleSearch={(e: any) => setSearchValue(e.target.value)}
@@ -320,6 +328,7 @@ const Home = (props: any) => {
                 navOptions={navOptions}
             />
             {cartProducts.length && <CartTooltip color='orange' />}
+            {showNotification()}
         </>
     )
 }

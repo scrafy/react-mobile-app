@@ -22,7 +22,7 @@ import { useTraductor } from 'src/hooks/Traductor';
 import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 import { useRouter } from 'next/router'
 import { ITokenService } from 'src/infraestructure/interfaces';
-
+import showNotification from "src/presentation/components/notifications";
 
 const useStyles = makeStyles({
     root: {
@@ -139,7 +139,7 @@ const ProductList = (props: any) => {
     const [isViewingFavs, setIsViewingFavs] = useState(false);
     const [searchValue, setSearchValue] = useState(props.search);
     const [navOptionsToShow, setNavOptionsToShow] = useState(navOptions);
-    const [pagination, setPagination] = useState({} as IPaginationData | undefined);
+    const [pagination, setPagination] = useState(props.pagination as IPaginationData | null);
     const [nextPage, setNextPage] = useState(1);
     const [navValue, setNavValue] = useState(50);
     const [products, setProducts] = useState(updateProductsState(props.initProducts));
@@ -601,10 +601,13 @@ const ProductList = (props: any) => {
 
         const el = e.target;
         if (el.scrollHeight - el.scrollTop === el.clientHeight)
+
             if (!isViewingFavs && pagination && nextPage < pagination?.totalPages) {
+
                 setNextPage(nextPage + 1)
                 SearchProducts(nextPage + 1);
             }
+
     }
 
     const onCategorySelected = (e: any) => {
@@ -695,7 +698,7 @@ const ProductList = (props: any) => {
                     </Select>
                 </FormControl>
             </Grid>
-            <Container className={classes.container} onScroll={handleScroll}>
+            <Container className={classes.container} onScroll={(e: any) => handleScroll(e)}>
                 {
                     cardView
                         ? <Grid container wrap={'wrap'} style={{ marginBottom: '60px' }}>
@@ -735,6 +738,7 @@ const ProductList = (props: any) => {
                 navValue={navValue}
                 navOptions={navOptionsToShow.filter(n => n.enabled === true)}
             />
+            {showNotification()}
         </>
     )
 }
@@ -773,7 +777,7 @@ export async function getServerSideProps(ctx: any) {
             categories = await new UnitOfWorkUseCase().getCategoriesUseCase().getCategories(search.catalogId, search.centerId, req.cookies["session"]);
 
         return {
-            props: { search: query.search || null, initProducts: _.orderBy(products.ServerData?.Data, ['name'], ['asc']), initCategories: categories.ServerData?.Data }
+            props: { pagination: products.ServerData?.PaginationData, search: query.search || null, initProducts: _.orderBy(products.ServerData?.Data, ['name'], ['asc']), initCategories: categories.ServerData?.Data }
         };
     }
     catch (error) {

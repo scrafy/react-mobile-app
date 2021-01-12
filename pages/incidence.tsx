@@ -11,8 +11,7 @@ import ErrorFormManager from 'src/presentation/helpers/ErrorFormManager';
 import AppBar from 'src/presentation/components/appBar/AppBar';
 import notify from 'src/redux/notifications/actions';
 import { useTraductor } from 'src/hooks/Traductor';
-import useStore from 'src/redux/store';
-import { createWrapper } from 'next-redux-wrapper';
+import showNotification from "src/presentation/components/notifications";
 import { useRouter } from 'next/router'
 import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 
@@ -68,7 +67,7 @@ const Incidence = () => {
         var fReader = new FileReader();
         fReader.readAsBinaryString(fileName);
         fReader.onload = (event: Event) => {
-            console.log(btoa(fReader.result as string))
+            
             setFile(btoa(fReader.result as string));
         };
     }
@@ -223,6 +222,7 @@ const Incidence = () => {
                     </Grid>
                 </Grid>
             </Container>
+            {showNotification()}
         </>
     )
 }

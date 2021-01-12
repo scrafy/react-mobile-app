@@ -23,7 +23,6 @@ export default function () {
             return <CenterDialog />;
         case 'datepicker':
             return <DatePickerDialog />;
-        default:
-            return null
+
     }
 };

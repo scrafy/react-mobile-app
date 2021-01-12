@@ -9,8 +9,7 @@ import {
 import { Check } from '@material-ui/icons'
 import { useTraductor } from 'src/hooks/Traductor';
 import { useRouter } from 'next/router';
-import { useStore } from 'react-redux';
-import { createWrapper } from 'next-redux-wrapper';
+import showNotification from "src/presentation/components/notifications";
 
 const useStyles = makeStyles({
 
@@ -81,6 +80,7 @@ const Error = ({ errorMessage }) => {
                     </Button>
                 </Grid>
             </Grid>
+            {showNotification()}
         </>
     )
 };

@@ -41,7 +41,7 @@ const CenterList = ({ centers=[] }: any) => {
     const traductor = useTraductor();
 
     const onCenterInfoClick = (selectedCenter: ICenter) => {
-        console.log(selectedCenter)
+        
         dispatch(
             notify.showNotification({
                 type: 'center',

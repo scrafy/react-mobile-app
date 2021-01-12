@@ -7,7 +7,8 @@ import { Provider } from "react-redux";
 import store from "src/redux/store";
 import { persistor } from "src/redux/store";
 import { PersistGate } from "redux-persist/integration/react";
-
+import { MuiPickersUtilsProvider } from "@material-ui/pickers";
+import MomentUtils from "@date-io/moment";
 
 const App = ({ Component, pageProps }) => {
   //const store = makeStore({ languaje: pageProps.lang });
@@ -34,7 +35,9 @@ const App = ({ Component, pageProps }) => {
         <CssBaseline />
         <Provider store={store}>
           <PersistGate loading={<div>loading</div>} persistor={persistor}>
-            <Component {...pageProps} />
+            <MuiPickersUtilsProvider utils={MomentUtils}>
+              <Component {...pageProps} />
+            </MuiPickersUtilsProvider>
           </PersistGate>
         </Provider>
       </ThemeProvider>

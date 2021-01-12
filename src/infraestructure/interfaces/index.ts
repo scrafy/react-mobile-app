@@ -1,6 +1,5 @@
 import { IHttpClient } from "./IHttpClient";
 import { ITokenService } from "./ITokenService";
-import { IStateService } from "./IStateService";
 import { ICatalogRepository } from "./repositories/ICatalogRepository";
 import { ICenterRepository } from "./repositories/ICenterRepository";
 import { IMetaInfoRepository } from "./repositories/IMetaInfoRepository";
@@ -24,7 +23,6 @@ export type {
     IProductRepository,
     ISellerRepository,
     IUserRepository,
-    IStateService,
     IRouteRepository,
     IState,
     ICart    

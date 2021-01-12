@@ -13,11 +13,9 @@ import { ICenter, IOrder, IProduct, ISeller, IServerResponse } from 'src/domain/
 import { useTraductor } from 'src/hooks/Traductor';
 import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 import { useRouter } from 'next/router'
-import store from 'src/redux/store';
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
-import useSetState from 'src/hooks/SetState';
-
+import showNotification from "src/presentation/components/notifications";
 
 function HistoryOrders(props: any) {
 
@@ -46,8 +44,7 @@ function HistoryOrders(props: any) {
     const centers: ICenter[] = useSelector((state: any) => state.centers.centers);
     const suppliers: ISeller[] = useSelector((state: any) => state.providers);
     const cartProducts: IProduct[] = useSelector((state: any) => state.cart.products);
-    const setState = useSetState();
-
+    
 
     useEffect(() => {
 
@@ -119,7 +116,6 @@ function HistoryOrders(props: any) {
             dispatch(cartActions(reduxErrorCallback).saveCenterToCart(center));
             dispatch(cartActions(reduxErrorCallback).saveSupplierToCart(supplier)).then(() => {
 
-                setState(store.getState());
                 router.push('/checkout');
             });
 
@@ -157,6 +153,7 @@ function HistoryOrders(props: any) {
                     />
             }
             {cartProducts.length && <CartTooltip color='orange' bottom={'20px'} />}
+            {showNotification()}
         </>
     )
 }

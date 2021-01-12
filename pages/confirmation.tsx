@@ -1,5 +1,6 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import showNotification from "src/presentation/components/notifications";
 import {
     Grid,
     Avatar,
@@ -8,8 +9,6 @@ import {
 } from '@material-ui/core';
 import { Check } from '@material-ui/icons'
 import { useTraductor } from 'src/hooks/Traductor';
-import { createWrapper } from 'next-redux-wrapper';
-import { useStore } from 'react-redux';
 import { useRouter } from 'next/router';
 
 const useStyles = makeStyles({
@@ -87,6 +86,7 @@ const Confirmation = (props: any) => {
                     </Button>
                 </Grid>
             </Grid>
+            {showNotification()}
         </>
     )
 };

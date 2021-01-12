@@ -1,6 +1,7 @@
 import { IServerResponse } from 'src/domain/interfaces'
 import { UnitOfWorkUseCase } from 'src/application/unitsofwork';
 import { Login } from 'src/domain/models/Login';
+import showNotification from "src/presentation/components/notifications";
 import {
     Avatar,
     Button,
@@ -230,6 +231,7 @@ const SingIn = (props: any) => {
                         </Grid>
                     </Container>
                 </Paper>
+                {showNotification()}
             </div>
         </div>
 

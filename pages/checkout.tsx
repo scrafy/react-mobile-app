@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import showNotification from "src/presentation/components/notifications";
 import { useDispatch } from 'react-redux';
 import moment from 'moment';
 import _, { get } from 'lodash';
@@ -34,7 +35,6 @@ import { useTraductor } from 'src/hooks/Traductor';
 import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 import { useRouter } from 'next/router'
 import store from 'src/redux/store';
-import useSetState from 'src/hooks/SetState';
 const { encode } = require('url-encode-decode');
 
 
@@ -82,7 +82,6 @@ const CheckOut = (props: any) => {
     const dispatch = useDispatch();
     const router = useRouter();
     const isDesktop = useMediaQuery('(min-width:900px)');
-    const setState = useSetState();
     const state: any = store.getState();
 
     //#endregion
@@ -637,6 +636,7 @@ const CheckOut = (props: any) => {
                     {traductor('finalizar_pedido', { uppercase: true })}
                 </Button>
             </Container>
+            {showNotification()}
         </>
     )
 }

@@ -13,11 +13,11 @@ import { makeStyles, createStyles } from '@material-ui/core/styles';
 import  ErrorFormManager  from 'src/presentation/helpers/ErrorFormManager'
 import notify from 'src/redux/notifications/actions';
 import { useDispatch } from 'react-redux';
-import useStore from 'src/redux/store';
+import showNotification from "src/presentation/components/notifications";
 import { AccountCentreCode, Email } from 'src/domain/models';
 import { useTraductor } from 'src/hooks/Traductor';
 import { useRouter } from 'next/router';
-import { createWrapper } from 'next-redux-wrapper';
+
 
 
 const useStyles = makeStyles(() => createStyles({
@@ -223,6 +223,7 @@ const ValidateCenter = (props: any) => {
 
                     </Container>
                 </Paper>
+                {showNotification()}
             </div>
         </div>
     );

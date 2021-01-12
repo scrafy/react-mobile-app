@@ -12,11 +12,11 @@ import {
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import ErrorFormManager from 'src/presentation/helpers/ErrorFormManager'
 import notify from 'src/redux/notifications/actions';
-import { useDispatch, useStore } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useTraductor } from 'src/hooks/Traductor';
 import { IEmail, IServerResponse } from 'src/domain/interfaces';
 import { Email } from 'src/domain/models';
-import { createWrapper } from 'next-redux-wrapper';
+import showNotification from "src/presentation/components/notifications";
 
 
 const useStyles = makeStyles(() => createStyles({
@@ -168,6 +168,7 @@ const RecoverPassword = (props: any) => {
 
                     </Container>
                 </Paper>
+                {showNotification()}
             </div>
         </div>
     );

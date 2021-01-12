@@ -18,7 +18,7 @@ import ErrorFormManager from 'src/presentation/helpers/ErrorFormManager';
 import { useTraductor } from 'src/hooks/Traductor';
 import { useDispatch, useStore } from 'react-redux';
 import notify from 'src/redux/notifications/actions';
-import { createWrapper } from 'next-redux-wrapper'
+import showNotification from "src/presentation/components/notifications";
 import { useRouter } from 'next/router';
 
 const useStyles = makeStyles(() => createStyles({
@@ -260,6 +260,7 @@ const SingUp = (props: any) => {
                         </Grid>
                     </Container>
                 </Paper>
+                {showNotification()}
             </div>
         </div>
     );

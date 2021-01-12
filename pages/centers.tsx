@@ -7,8 +7,7 @@ import CartTooltip from 'src/presentation/components/tooltip/CartTooltip';
 import CenterList from 'src/presentation/components/centers/CenterList';
 import CenterCards from 'src/presentation/components/centers/CenterCards';
 import { useTraductor } from 'src/hooks/Traductor';
-import useStore from 'src/redux/store';
-import { createWrapper } from 'next-redux-wrapper';
+import showNotification from "src/presentation/components/notifications";
 import { useRouter } from 'next/router'
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
@@ -53,7 +52,7 @@ function Centers() {
                     : <CenterList centers={centers} />
             }
             {cartProducts.length && <CartTooltip color='orange' bottom={'20px'} />}
-
+            {showNotification()}
         </>
     )
 }

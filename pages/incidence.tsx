@@ -33,6 +33,7 @@ const useStyles = makeStyles({
 const Incidence = () => {
 
     const service: UnitOfWorkService = new UnitOfWorkService();
+    const useCase: UnitOfWorkUseCase = new UnitOfWorkUseCase();
 
     const traductor = useTraductor();
     const router = useRouter();
@@ -87,7 +88,7 @@ const Incidence = () => {
         model.Body = body;
         model.Subject = subject;
         model.File = file ?? undefined;
-        new UnitOfWorkUseCase().getCreateIncidenceUseCase().createIncidence(model).then(resp => {
+        useCase.getCreateIncidenceUseCase().createIncidence(model).then(resp => {
 
             cleanForm();
             setSnackMessage(traductor('incidencia_creada', { onlyfirst: true }));

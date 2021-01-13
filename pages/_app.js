@@ -11,8 +11,6 @@ import { MuiPickersUtilsProvider } from "@material-ui/pickers";
 import MomentUtils from "@date-io/moment";
 
 const App = ({ Component, pageProps }) => {
-  //const store = makeStore({ languaje: pageProps.lang });
-
   React.useEffect(() => {
     // Remove the server-side injected CSS.
     const jssStyles = document.querySelector("#jss-server-side");

@@ -32,11 +32,23 @@ const useStyles = makeStyles({
         marginTop: '60px',
         height: 'calc(100vh - 60px)',
         overflow: 'auto',
+    },
+    scrollBar: {
+        '&::-webkit-scrollbar': {
+            width: '0.4em'
+        },
+        '&::-webkit-scrollbar-track': {
+            '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.00)'
+        },
+        '&::-webkit-scrollbar-thumb': {
+            backgroundColor: 'rgba(0,0,0,.1)',
+            outline: '1px solid 2196F3'
+        }
     }
 });
 
-const SupplierList = ({ suppliers=[] }: any) => {
-    
+const SupplierList = ({ suppliers = [] }: any) => {
+
 
     const classes = useStyles();
     const dispatch = useDispatch();
@@ -52,15 +64,15 @@ const SupplierList = ({ suppliers=[] }: any) => {
     };
 
     return (
-        <List className={classes.supplierList}>
+        <List className={`${classes.supplierList} ${classes.scrollBar}`}>
             {
                 suppliers.map((supplier: ISeller, index: any) => (
                     <React.Fragment key={index}>
                         <ListItem className={classes.main}>
                             <ListItemAvatar>
-                                <Avatar 
-                                    className={classes.avatar} 
-                                    variant='square' 
+                                <Avatar
+                                    className={classes.avatar}
+                                    variant='square'
                                     src={supplier.imageUrl}
                                     imgProps={{
                                         style: { objectFit: 'contain' }
@@ -71,17 +83,17 @@ const SupplierList = ({ suppliers=[] }: any) => {
                                 primary={supplier.companyName}
                             />
                             <ListItemSecondaryAction>
-                                <Tooltip 
-                                    title={traductor('supplier_titulo_dialogo', {onlyfirst:true})}
+                                <Tooltip
+                                    title={traductor('supplier_titulo_dialogo', { onlyfirst: true })}
                                     placement="left"
                                 >
-                                    <IconButton 
+                                    <IconButton
                                         edge="end"
                                         onClick={(e: any) => onSellerInforClick(supplier)}
                                     >
                                         <Comment />
                                     </IconButton>
-                                </Tooltip> 
+                                </Tooltip>
                             </ListItemSecondaryAction>
                         </ListItem>
                         <Divider />

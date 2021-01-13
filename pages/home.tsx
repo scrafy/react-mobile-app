@@ -96,7 +96,7 @@ const Home = (props: any) => {
     const centerCatalogs: ICatalog[] = useSelector((state: any) => state.catalogs.catalogs);
     const cartProducts: IProduct[] = useSelector((state: any) => state.cart.products);
     const centerInCart: ICenter = useSelector((state: any) => state.cart.center);
-    
+
 
     const [searchValue, setSearchValue] = useState('');
     const [navValue, setNavValue] = useState(50);
@@ -116,7 +116,7 @@ const Home = (props: any) => {
             router.push("/");
 
         });
-
+       
         dispatch(centerActions(reduxErrorCallback).getCenters);
         dispatch(getProviders(reduxErrorCallback).getProviders);
         setCenterSelected(state.centers.selectedCenter);
@@ -157,7 +157,6 @@ const Home = (props: any) => {
                 dispatch(centerActions(reduxErrorCallback).saveCenter(selectedCenter));
                 setCenterSelected(selectedCenter);
             }
-
             dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(parseInt(event.target.value)));
         }
         else {
@@ -220,7 +219,7 @@ const Home = (props: any) => {
 
         if (searchValue !== '')
 
-            router.push({ pathname: '/productlist', query: { search: searchValue, centerId: centerSelected?.id } });
+            router.push({ pathname: '/productlist', query: { isGeneralSearch:true, search: searchValue, centerId: centerSelected?.id } });
         else
             dispatch(
                 notify.showNotification({

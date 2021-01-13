@@ -36,7 +36,7 @@ const createNoopStorage = () => {
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["cart", "centers", "catalogs"],
+  whitelist: ["cart", "centers", "catalogs", "providers"],
 };
 
 const persistedReducer = persistReducer(persistConfig, reducers);

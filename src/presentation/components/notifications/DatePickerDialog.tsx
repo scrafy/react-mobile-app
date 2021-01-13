@@ -8,6 +8,7 @@ import { createMuiTheme } from "@material-ui/core";
 import { ThemeProvider } from "@material-ui/styles";
 
 const materialTheme = createMuiTheme({
+
     overrides: {
         MuiPickersToolbar: {
             toolbar: {
@@ -30,6 +31,7 @@ const materialTheme = createMuiTheme({
             },
         },
     },
+    
 });
 
 export default function DatePickerDialog() {

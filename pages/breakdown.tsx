@@ -22,6 +22,18 @@ import { UnitOfWorkUseCase } from 'src/application/unitsofwork/UnitOfWorkUseCase
 
 const useStyles = makeStyles({
 
+    super: {
+        '@media only screen and (max-width:500px) and (orientation:portrait)': {
+            transform: 'rotate(-90deg)',
+            width: '100vh',
+            height: '100%',
+            overflow: 'hidden',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+        },
+    },
+
     container: {
         overflow: 'auto',
         height: 'calc(100vh - 80px)',
@@ -51,7 +63,7 @@ const BreakDown = (props: any) => {
     const order: IOrder = props.order;
 
     useEffect(() => {
-
+        window.scrollTo(0, 0);
         useCheckTokenInvalid(() => {
 
             tokenService.removeToken();
@@ -63,7 +75,7 @@ const BreakDown = (props: any) => {
 
 
     return (
-        <>
+        <div className={classes.super}>
             <AppBar
                 backIcon
                 title='Desglose'
@@ -115,9 +127,9 @@ const BreakDown = (props: any) => {
                     </TableRow>
                 </Table>
             </TableContainer>
-             {showNotification()}
+            {showNotification()}
 
-        </>
+        </div>
     )
 };
 
@@ -135,9 +147,9 @@ export async function getServerSideProps({ req, query }) {
 
         const useCase: UnitOfWorkUseCase = new UnitOfWorkUseCase().getOrdersDoneUseCase();
         const orders: IServerResponse<IOrder[]> = await useCase.getOrdersDone(query.order, req.cookies["session"]);
-        
+
         return {
-            props: { order:orders.ServerData.Data[0] }
+            props: { order: orders.ServerData.Data[0] }
         };
     }
     catch (error) {

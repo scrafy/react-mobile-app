@@ -16,7 +16,7 @@ import {
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import ErrorFormManager from 'src/presentation/helpers/ErrorFormManager';
 import { useTraductor } from 'src/hooks/Traductor';
-import { useDispatch, useStore } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import notify from 'src/redux/notifications/actions';
 import showNotification from "src/presentation/components/notifications";
 import { useRouter } from 'next/router';

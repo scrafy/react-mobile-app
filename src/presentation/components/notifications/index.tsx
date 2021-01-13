@@ -7,6 +7,7 @@ import SupplierDialog from './SupplierDialog';
 import PersonalInfoDialog from "./PersonalInfoDialog";
 import CenterDialog from './CenterDialog';
 import DatePickerDialog from './DatePickerDialog'
+import GlobalLoader from './GlobalLoader';
 
 export default function () {
     const { type = '' } = useSelector((state: any) => state.notifications)
@@ -23,6 +24,8 @@ export default function () {
             return <CenterDialog />;
         case 'datepicker':
             return <DatePickerDialog />;
+        case 'loader':
+            return <GlobalLoader />;
 
     }
 };

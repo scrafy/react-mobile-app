@@ -49,7 +49,7 @@ export default function PersonalInfoDialog() {
     const [oldPassword, setOldPassword] = useState('')
     const [newPassword, setNewPassword] = useState('')
     const [_severity, setSeverity] = useState('success' as "info" | "success" | "error" | "warning" | undefined);
-    const [snackMessage, setSnackMessage] = useState(traductor('personal_info_dialog_mensaje', {onlyfirst:true}))
+    const [snackMessage, setSnackMessage] = useState(traductor('personal_info_dialog_mensaje', { onlyfirst: true }))
     const [showMessage, setShowMessage] = useState(false)
     const [showChangePasswordPanel, setShowChangePasswordPanel] = useState(false)
     const [confirmPassword, setConfirmPassword] = useState('')
@@ -71,8 +71,10 @@ export default function PersonalInfoDialog() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    const handleClose = () => {
-        dispatch(notificationActions.hideNotification());
+    const handleClose = (action: any) => {
+        if (action === 'clickCloseButton') {
+            dispatch(notificationActions.hideNotification());
+        }
     };
 
     const cleanForm = () => {
@@ -92,7 +94,7 @@ export default function PersonalInfoDialog() {
 
         new UnitOfWorkUseCase().getChangePasswordUseCase().changePassword(model).then((resp: IServerResponse<string>) => {
             cleanForm();
-            setSnackMessage(traductor('personal_info_dialog_mensaje', {onlyfirst:true}));
+            setSnackMessage(traductor('personal_info_dialog_mensaje', { onlyfirst: true }));
             setShowChangePasswordPanel(false);
             setValidationErrors({});
             setSeverity("success");
@@ -123,9 +125,9 @@ export default function PersonalInfoDialog() {
                     {snackMessage}
                 </Alert>}
                 <Container>
-                    
+
                     <TextField
-                        label={traductor('usuario', {onlyfirst:true})}
+                        label={traductor('usuario', { onlyfirst: true })}
                         fullWidth
                         value={info.username}
                         margin="normal"
@@ -139,7 +141,7 @@ export default function PersonalInfoDialog() {
                         variant="standard"
                     />
                     <TextField
-                        label={traductor('telefono', {onlyfirst:true})}
+                        label={traductor('telefono', { onlyfirst: true })}
                         fullWidth
                         value={info.phone}
                         margin="normal"
@@ -149,11 +151,11 @@ export default function PersonalInfoDialog() {
 
                 <Container>
                     {!showChangePasswordPanel && <Typography align='right' variant='subtitle2' className={classes.changepassword} onClick={e => setShowChangePasswordPanel(true)}>
-                    {traductor('cambiar_contraseña', {onlyfirst:true})}
-                </Typography>}
-                    {showChangePasswordPanel && <Typography align='right' variant='subtitle2' className={classes.changepassword} onClick={e => {setValidationErrors({});setShowChangePasswordPanel(false)}}>
-                    {traductor('cerrar', {onlyfirst:true})}
-                </Typography>}
+                        {traductor('cambiar_contraseña', { onlyfirst: true })}
+                    </Typography>}
+                    {showChangePasswordPanel && <Typography align='right' variant='subtitle2' className={classes.changepassword} onClick={e => { setValidationErrors({}); setShowChangePasswordPanel(false) }}>
+                        {traductor('cerrar', { onlyfirst: true })}
+                    </Typography>}
                 </Container>
                 {showChangePasswordPanel && <Container>
                     <TextField
@@ -164,7 +166,7 @@ export default function PersonalInfoDialog() {
                         fullWidth
                         type="password"
                         id="oldPassword"
-                        label={traductor('contraseña_vieja', {onlyfirst:true})}
+                        label={traductor('contraseña_vieja', { onlyfirst: true })}
                         name="oldPassword"
                         value={oldPassword}
                         autoFocus
@@ -177,7 +179,7 @@ export default function PersonalInfoDialog() {
                         required
                         fullWidth
                         name="password"
-                        label={traductor('nueva_contraseña', {onlyfirst:true})}
+                        label={traductor('nueva_contraseña', { onlyfirst: true })}
                         type="password"
                         id="password"
                         autoComplete="current-password"
@@ -192,7 +194,7 @@ export default function PersonalInfoDialog() {
                         required
                         fullWidth
                         name="confirmpassword"
-                        label={traductor('confirmar_contraseña', {onlyfirst:true})}
+                        label={traductor('confirmar_contraseña', { onlyfirst: true })}
                         type="password"
                         id="confirmpassword"
                         autoComplete="current-password"
@@ -208,13 +210,13 @@ export default function PersonalInfoDialog() {
                         className={classes.submit}
                         onClick={e => onChangePassword()}
                     >
-                         {traductor('cambiar_contraseña', {onlyfirst:true})}
-                </Button>
+                        {traductor('cambiar_contraseña', { onlyfirst: true })}
+                    </Button>
                 </Container>}
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleClose} color="primary" autoFocus>
-                {traductor('cerrar', {uppercase:true})}
+                <Button onClick={(e: any) => handleClose('clickCloseButton')} color="primary" autoFocus>
+                    {traductor('cerrar', { uppercase: true })}
                 </Button>
             </DialogActions>
         </Dialog>

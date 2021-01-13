@@ -141,7 +141,7 @@ export default {
     producto_añadido: '{0} producto añadido',
     precio_bajo: 'precio más bajo',
     precio_alto: 'precio más alto',
-    lista_productos: 'lista de productos',
+    productos: 'Productos',
     categorias: 'categorías',
     todas_categorias: 'todas las categorías',
     filtro: 'filtro',

@@ -33,15 +33,27 @@ const useStyles = makeStyles({
         width: '100px',
         height: '100px',
     },
+    scrollBar: {
+        '&::-webkit-scrollbar': {
+            width: '0.4em'
+        },
+        '&::-webkit-scrollbar-track': {
+            '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.00)'
+        },
+        '&::-webkit-scrollbar-thumb': {
+            backgroundColor: 'rgba(0,0,0,.1)',
+            outline: '1px solid 2196F3'
+        }
+    }
 });
 
-const CenterList = ({ centers=[] }: any) => {
+const CenterList = ({ centers = [] }: any) => {
     const classes = useStyles();
     const dispatch = useDispatch();
     const traductor = useTraductor();
 
     const onCenterInfoClick = (selectedCenter: ICenter) => {
-        
+
         dispatch(
             notify.showNotification({
                 type: 'center',
@@ -51,15 +63,15 @@ const CenterList = ({ centers=[] }: any) => {
     };
 
     return (
-        <List className={classes.supplierList}>
+        <List className={`${classes.supplierList} ${classes.scrollBar}`}>
             {
                 centers.map((center: ICenter) => (
                     <React.Fragment key={center.id}>
                         <ListItem className={classes.main}>
                             <ListItemAvatar>
-                                <Avatar 
-                                    className={classes.avatar} 
-                                    variant='square' 
+                                <Avatar
+                                    className={classes.avatar}
+                                    variant='square'
                                     src={center.imageUrl}
                                     imgProps={{
                                         style: { objectFit: 'contain' }
@@ -70,17 +82,17 @@ const CenterList = ({ centers=[] }: any) => {
                                 primary={center.name}
                             />
                             <ListItemSecondaryAction>
-                                <Tooltip 
-                                    title={traductor('center_titulo_dialogo', {onlyfirst:true})}
+                                <Tooltip
+                                    title={traductor('center_titulo_dialogo', { onlyfirst: true })}
                                     placement="left"
                                 >
-                                    <IconButton 
+                                    <IconButton
                                         edge="end"
                                         onClick={(e: any) => onCenterInfoClick(center)}
                                     >
                                         <Comment />
                                     </IconButton>
-                                </Tooltip> 
+                                </Tooltip>
                             </ListItemSecondaryAction>
                         </ListItem>
                         <Divider />

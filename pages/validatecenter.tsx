@@ -72,6 +72,9 @@ const useStyles = makeStyles(() => createStyles({
 
 const ValidateCenter = (props: any) => {
 
+
+    const useCase: UnitOfWorkUseCase = new UnitOfWorkUseCase();
+
     const [activationCode, setActivationCode] = useState('')
     const [email, setEmail] = useState('')
     const [validationErrors, setValidationErrors] = useState({} as any)
@@ -92,12 +95,12 @@ const ValidateCenter = (props: any) => {
 
         const _email: IEmail = new Email();
         _email.email = email;
-        new UnitOfWorkUseCase().getCheckUserEmailUseCase().checkUserEmail(_email).then((resp: IServerResponse<string>) => {
+        useCase.getCheckUserEmailUseCase().checkUserEmail(_email).then((resp: IServerResponse<string>) => {
 
 
             if (resp.ServerData?.Data && resp.ServerData?.Data === "True") {
 
-                const useCase = new UnitOfWorkUseCase().getAssociateAccountToCentreCodeUseCase();
+                useCase.getAssociateAccountToCentreCodeUseCase();
                 const data: IAccountCentreCode = new AccountCentreCode();
                 data.centreCode = activationCode;
                 data.email = email;

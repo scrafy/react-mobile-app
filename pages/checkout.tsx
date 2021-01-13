@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import showNotification from "src/presentation/components/notifications";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment';
 import _, { get } from 'lodash';
 import {
@@ -19,7 +19,7 @@ import {
     List as ListIcon,
     Event,
 } from '@material-ui/icons';
-import { ICenter, IProduct, IServerResponse, ISeller, IOrder, IOrderCenterInfo, IOrderSellerInfo } from 'src/domain/interfaces'
+import { ICenter, IProduct, IServerResponse, ISeller, IOrder, IOrderCenterInfo, IOrderSellerInfo, ICatalog } from 'src/domain/interfaces'
 import { Order, OrderCenterInfo, OrderSellerInfo } from 'src/domain/models'
 import AppBar from 'src/presentation/components/appBar/AppBar';
 import { UnitOfWorkUseCase } from 'src/application/unitsofwork/UnitOfWorkUseCase';
@@ -67,6 +67,18 @@ const useStyles = makeStyles({
     resumen: {
         marginBottom: 14,
         color: '#2196F3'
+    },
+    scrollBar: {
+        '&::-webkit-scrollbar': {
+            width: '0.4em'
+        },
+        '&::-webkit-scrollbar-track': {
+            '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.00)'
+        },
+        '&::-webkit-scrollbar-thumb': {
+            backgroundColor: 'rgba(0,0,0,.1)',
+            outline: '1px solid 2196F3'
+        }
     }
 });
 
@@ -83,6 +95,13 @@ const CheckOut = (props: any) => {
     const router = useRouter();
     const isDesktop = useMediaQuery('(min-width:900px)');
     const state: any = store.getState();
+
+    //#endregion
+
+    //#region USE_SELECTORS
+
+    const centerSelected: ICenter = useSelector((state: any) => state.centers.selectedCenter);
+    const catalogSelected: ICatalog = useSelector((state: any) => state.catalogs.selectedCatalog);
 
     //#endregion
 
@@ -141,10 +160,10 @@ const CheckOut = (props: any) => {
 
     const GenerateOrder = () => {
 
-        const userId: string | undefined = new UnitOfWorkService().getTokenService().getClaimFromToken('userId');
+        const userId: string | undefined = service.getTokenService().getClaimFromToken('userId');
 
         if (!userId) {
-            new UnitOfWorkService().getTokenService().removeToken();
+            service.getTokenService().removeToken();
         } else {
             const _center: IOrderCenterInfo = new OrderCenterInfo();
             _center.centerId = center.id;
@@ -373,7 +392,8 @@ const CheckOut = (props: any) => {
         router.push({
             pathname: '/productlist',
             query: {
-                centerId: state.cart.center.id
+                centerId: centerSelected.id,
+                isGeneralSearch: true
             }
         });
     }
@@ -389,7 +409,7 @@ const CheckOut = (props: any) => {
                 textClose: traductor('cancelar', { onlyfirst: true }),
                 onOk: () => {
                     dispatch(cartActions(reduxErrorCallback).cleanCart);
-                    router.back();
+                    router.push({ pathname: '/productlist', query: { isGeneralSearch: false, centerId: centerSelected?.id, catalogId: catalogSelected?.id } });
                 }
             })
         )
@@ -480,7 +500,7 @@ const CheckOut = (props: any) => {
                 navValue={navValue}
                 navOptions={checkoutNavOptions}
             />
-            <Container className={classes.container}>
+            <Container className={`${classes.container} ${classes.scrollBar}`}>
                 <Grid
                     container
                     direction="column"

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useSelector } from 'react-redux';
-import { useMediaQuery } from '@material-ui/core';
+import { Container, useMediaQuery } from '@material-ui/core';
 import { IProduct, ISeller } from 'src/domain/interfaces';
 import AppBar from 'src/presentation/components/appBar/AppBar';
 import CartTooltip from 'src/presentation/components/tooltip/CartTooltip';
@@ -14,8 +14,8 @@ import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
 
 function Suppliers() {
 
-    
-    const service:UnitOfWorkService = new UnitOfWorkService();
+
+    const service: UnitOfWorkService = new UnitOfWorkService();
     const router = useRouter();
     const isDesktop = useMediaQuery('(min-width:900px)');
     const traductor = useTraductor();
@@ -26,7 +26,7 @@ function Suppliers() {
     useEffect(() => {
 
         useCheckTokenInvalid(() => {
-                        
+
             service.getTokenService().removeToken();
             router.push("/");
 
@@ -35,7 +35,7 @@ function Suppliers() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    
+
     return (
         <>
             <AppBar

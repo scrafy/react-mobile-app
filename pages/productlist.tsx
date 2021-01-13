@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import _, { isNull, get } from 'lodash';
 import { ICategory, ICenter, IPaginationData, IProduct, IServerResponse, ISeller } from 'src/domain/interfaces';
 import { SearchProduct } from 'src/domain/models';
-import { Grid, List, FormControl, InputLabel, Select, MenuItem, Container } from '@material-ui/core';
+import { Grid, List, FormControl, InputLabel, Select, MenuItem, Container, CircularProgress, Dialog } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import BottomNavigation from 'src/presentation/components/navigation/BottomNavigation';
 import AppBar from 'src/presentation/components/appBar/AppBar';
@@ -23,6 +23,8 @@ import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 import { useRouter } from 'next/router'
 import { ITokenService } from 'src/infraestructure/interfaces';
 import showNotification from "src/presentation/components/notifications";
+import { ShowLoader, HideLoader } from "src/presentation/helpers/ShowGlobalLoader";
+
 
 const useStyles = makeStyles({
     root: {
@@ -46,13 +48,25 @@ const useStyles = makeStyles({
         height: 'calc(100vh - 200px)',
         overflow: 'auto',
     },
-    containerProducts: {},
+    scrollBar: {
+        '&::-webkit-scrollbar': {
+            width: '0.4em'
+        },
+        '&::-webkit-scrollbar-track': {
+            '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.00)'
+        },
+        '&::-webkit-scrollbar-thumb': {
+            backgroundColor: 'rgba(0,0,0,.1)',
+            outline: '1px solid 2196F3'
+        }
+    }
 });
 
 
 const ProductList = (props: any) => {
 
     const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
+    const useCase: UnitOfWorkUseCase = new UnitOfWorkUseCase();
 
     //#region HOOKS
 
@@ -124,7 +138,13 @@ const ProductList = (props: any) => {
 
     //#region USE_SELECTORS
 
-    const catalogSelected: ICatalog | null = useSelector((state: any) => state.catalogs.selectedCatalog);
+    const catalogSelected: ICatalog | null = useSelector((state: any) => {
+        
+        if (props.isgeneralSearch)
+            return null
+        else
+            return state.catalogs.selectedCatalog
+    });
     const centerSelected: ICenter | null = useSelector((state: any) => state.centers.selectedCenter);
     const suppliers: ISeller[] | null = useSelector((state: any) => state.providers);
     const centerInCart: ICenter | null = useSelector((state: any) => state.cart.center);
@@ -230,15 +250,11 @@ const ProductList = (props: any) => {
 
     const SearchFavorites = () => {
 
-        if (catalogSelected !== null && centerSelected !== null) {
+        if (centerSelected !== null) {
+            ShowLoader(dispatch);
 
-            const search: ISearchProduct = new SearchProduct();
-            search.catalogId = catalogSelected && catalogSelected.id;
-            search.centerId = centerSelected.id;
-
-
-            new UnitOfWorkUseCase().getProductsFromFavoriteListUseCase().getProductsFromFavoriteList(centerSelected.id).then((resp: IServerResponse<IProduct[]>) => {
-
+            useCase.getProductsFromFavoriteListUseCase().getProductsFromFavoriteList(centerSelected.id).then((resp: IServerResponse<IProduct[]>) => {
+                HideLoader(dispatch);
                 if (resp.ServerData?.Data && resp.ServerData?.Data.length > 0) {
                     setIsViewingFavs(true);
                     setNextPage(1);
@@ -259,6 +275,7 @@ const ProductList = (props: any) => {
                 }
 
             }).catch(error => {
+                HideLoader(dispatch);
                 setIsViewingFavs(false);
                 setNavValue(50);
                 dispatch(
@@ -277,6 +294,7 @@ const ProductList = (props: any) => {
 
     const SearchProducts = (page: number = 1, _searchValue = searchValue, _category = categorySelected) => {
 
+        ShowLoader(dispatch);
         const search: ISearchProduct = new SearchProduct();
         search.catalogId = catalogSelected && catalogSelected.id;
         search.centerId = centerSelected.id;
@@ -288,7 +306,7 @@ const ProductList = (props: any) => {
         if (_searchValue !== "")
             search.nameProduct = _searchValue;
 
-        new UnitOfWorkUseCase().getSearchProductUseCase().searchProducts(search, page).then((response: IServerResponse<IProduct[]>) => {
+        useCase.getSearchProductUseCase().searchProducts(search, page).then((response: IServerResponse<IProduct[]>) => {
 
             if (response.ServerData?.Data.length === 0) {
                 dispatch(
@@ -316,9 +334,10 @@ const ProductList = (props: any) => {
                     setPagination(response.ServerData?.PaginationData);
                 }
             }
+            HideLoader(dispatch);
 
         }).catch(error => {
-
+            HideLoader(dispatch);
             dispatch(
                 notify.showNotification({
                     type: 'confirm',
@@ -496,7 +515,7 @@ const ProductList = (props: any) => {
 
         if (product.favorite)
 
-            new UnitOfWorkUseCase().getAddProductToFavoriteListUseCase().addProductToFavoriteList(product.id).then(resp => {
+            useCase.getAddProductToFavoriteListUseCase().addProductToFavoriteList(product.id).then(resp => {
 
                 UpdateProducts(product);
 
@@ -514,7 +533,7 @@ const ProductList = (props: any) => {
             })
         else
 
-            new UnitOfWorkUseCase().getDeleteProductFromFavoriteListUseCase().deleteProductFromFavoriteList(product.id).then(resp => {
+            useCase.getDeleteProductFromFavoriteListUseCase().deleteProductFromFavoriteList(product.id).then(resp => {
 
                 if (isViewingFavs) {
 
@@ -603,7 +622,6 @@ const ProductList = (props: any) => {
         if (el.scrollHeight - el.scrollTop === el.clientHeight)
 
             if (!isViewingFavs && pagination && nextPage < pagination?.totalPages) {
-
                 setNextPage(nextPage + 1)
                 SearchProducts(nextPage + 1);
             }
@@ -641,7 +659,7 @@ const ProductList = (props: any) => {
                 searchValue={searchValue}
                 backIcon
                 handleEnter={onSearchEnter}
-                title={traductor('lista_productos', { onlyfirst: true })}
+                title={traductor('productos', { onlyfirst: true })}
                 cardView={cardView}
                 setCardView={(e: any, switchState: any) => setCardView(switchState)}
                 searchEnabled={!isViewingFavs && true}
@@ -698,7 +716,7 @@ const ProductList = (props: any) => {
                     </Select>
                 </FormControl>
             </Grid>
-            <Container className={classes.container} onScroll={(e: any) => handleScroll(e)}>
+            <Container maxWidth={false} className={`${classes.container} ${classes.scrollBar}`} onScroll={(e: any) => handleScroll(e)}>
                 {
                     cardView
                         ? <Grid container wrap={'wrap'} style={{ marginBottom: '60px' }}>
@@ -716,7 +734,7 @@ const ProductList = (props: any) => {
                             })
                             }
                         </Grid>
-                        : <List className={classes.containerProducts}>
+                        : <List>
                             {
                                 products && products.map((product: IProduct, index: number) => {
                                     return (
@@ -739,6 +757,7 @@ const ProductList = (props: any) => {
                 navOptions={navOptionsToShow.filter(n => n.enabled === true)}
             />
             {showNotification()}
+
         </>
     )
 }
@@ -748,15 +767,17 @@ export async function getServerSideProps(ctx: any) {
 
 
     try {
-
+        const useCase: UnitOfWorkUseCase = new UnitOfWorkUseCase();
         let products: IServerResponse<IProduct[]>;
         let categories: IServerResponse<ICategory[]>;
         const search: ISearchProduct = new SearchProduct();
         const { req, query } = ctx;
         let isgeneralSearch: boolean = false;
 
-        if (req.headers['referer'] && req.headers['referer'].includes("checkout") || (req.headers['referer'] && req.headers['referer'].includes("home") && query.search))
+        if (query && query.isGeneralSearch && query.isGeneralSearch === 'true')
             isgeneralSearch = true;
+        else
+            isgeneralSearch = false;
 
         if (!isgeneralSearch && (query.centerId === undefined || query.catalogId === undefined))
             throw new Error("Ha de seleccionar un centro y un catálogo")
@@ -769,15 +790,15 @@ export async function getServerSideProps(ctx: any) {
 
         search.centerId = query.centerId;
         search.nameProduct = query.search;
-        products = await new UnitOfWorkUseCase().getSearchProductUseCase().searchProducts(search, 1, req.cookies["session"]);
+        products = await useCase.getSearchProductUseCase().searchProducts(search, 1, req.cookies["session"]);
 
         if (isgeneralSearch)
-            categories = await new UnitOfWorkUseCase().getCategoriesByCentreUseCase().getCategoriesByCentre(search.centerId, req.cookies["session"]);
+            categories = await useCase.getCategoriesByCentreUseCase().getCategoriesByCentre(search.centerId, req.cookies["session"]);
         else
-            categories = await new UnitOfWorkUseCase().getCategoriesUseCase().getCategories(search.catalogId, search.centerId, req.cookies["session"]);
+            categories = await useCase.getCategoriesUseCase().getCategories(search.catalogId, search.centerId, req.cookies["session"]);
 
         return {
-            props: { pagination: products.ServerData?.PaginationData, search: query.search || null, initProducts: _.orderBy(products.ServerData?.Data, ['name'], ['asc']), initCategories: categories.ServerData?.Data }
+            props: { isgeneralSearch, pagination: products.ServerData?.PaginationData, search: query.search || null, initProducts: _.orderBy(products.ServerData?.Data, ['name'], ['asc']), initCategories: categories.ServerData?.Data }
         };
     }
     catch (error) {

@@ -28,13 +28,26 @@ const useStyles = makeStyles({
         backgroundSize: 'contain',
         height: 160,
     },
+    scrollBar: {
+        '&::-webkit-scrollbar': {
+            width: '0.4em'
+        },
+        '&::-webkit-scrollbar-track': {
+            '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.00)'
+        },
+        '&::-webkit-scrollbar-thumb': {
+            backgroundColor: 'rgba(0,0,0,.1)',
+            outline: '1px solid 2196F3'
+        }
+    }
 });
 
-const CenterCards = ({ centers=[] }: any) => {
+const CenterCards = ({ centers = [] }: any) => {
+
     const classes = useStyles();
 
     return (
-        <Grid container wrap={'wrap'} className={classes.container}>
+        <Grid container wrap={'wrap'} className={`${classes.container} ${classes.scrollBar}`}>
             {
                 centers.map((center: ICenter) => (
                     <Grid item xs={12} sm={6} md={4} lg={3} key={center.id}>

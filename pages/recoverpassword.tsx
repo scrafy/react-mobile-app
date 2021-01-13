@@ -71,6 +71,8 @@ const useStyles = makeStyles(() => createStyles({
 
 const RecoverPassword = (props: any) => {
 
+    const useCase: UnitOfWorkUseCase = new UnitOfWorkUseCase();
+
     const [email, setEmail] = useState('')
     const [validationErrors, setValidationErrors] = useState({} as any)
 
@@ -85,7 +87,7 @@ const RecoverPassword = (props: any) => {
 
         const _email: IEmail = new Email();
         _email.email = email;
-        new UnitOfWorkUseCase().getRecoverPasswordUseCase().recoverPassword(_email).then((resp: IServerResponse<string>) => {
+        useCase.getRecoverPasswordUseCase().recoverPassword(_email).then((resp: IServerResponse<string>) => {
 
             dispatch(
                 notify.showNotification({

@@ -13,10 +13,15 @@ export class ProductRepository extends BaseRepository implements IProductReposit
     }
 
 
-    async searchProducts(search: ISearchProduct, page: number): Promise<IServerResponse<Array<IProduct>>> {
+    async searchProducts(search: ISearchProduct, page: number, recordsByPage?: number): Promise<IServerResponse<Array<IProduct>>> {
+
 
         try {
-            const resp = await this.httpClient.postJsonData(`${process.env.REACT_APP_ENDPOINT_URL}/ProductDetails/${page}/search`, search, null, true);
+            let resp: any;
+            if (recordsByPage)
+                resp = await this.httpClient.postJsonData(`${process.env.REACT_APP_ENDPOINT_URL}/ProductDetails/${page}/search/${recordsByPage}`, search, null, true);
+            else
+                resp = await this.httpClient.postJsonData(`${process.env.REACT_APP_ENDPOINT_URL}/ProductDetails/${page}/search`, search, null, true);
             return resp.data;
         }
         catch (error) {
@@ -26,10 +31,14 @@ export class ProductRepository extends BaseRepository implements IProductReposit
         }
     }
 
-    async tokenSearchProducts(search: ISearchProduct, page: number, token: string): Promise<IServerResponse<Array<IProduct>>> {
+    async tokenSearchProducts(search: ISearchProduct, page: number, token: string, recordsByPage?: number): Promise<IServerResponse<Array<IProduct>>> {
 
         try {
-            const resp = await this.httpClient.tokenPostJsonData(`${process.env.REACT_APP_ENDPOINT_URL}/ProductDetails/${page}/search`, search, null, token);
+            let resp: any;
+            if (recordsByPage)
+                resp = await this.httpClient.tokenPostJsonData(`${process.env.REACT_APP_ENDPOINT_URL}/ProductDetails/${page}/search/${recordsByPage}`, search, null, token);
+            else
+                resp = await this.httpClient.tokenPostJsonData(`${process.env.REACT_APP_ENDPOINT_URL}/ProductDetails/${page}/search`, search, null, token);
             return resp.data;
         }
         catch (error) {

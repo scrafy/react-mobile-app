@@ -23,6 +23,11 @@ import { useRouter } from 'next/router';
 import userActions from "src/redux/users/actions";
 import { ITokenService } from 'src/infraestructure/interfaces';
 import { UnitOfWorkService } from 'src/infraestructure/unitsofwork';
+import store from "src/redux/store";
+import centerActions from 'src/redux/centres/actions';
+import catalogActions from 'src/redux/catalogs/actions';
+import cartActions from 'src/redux/cart/actions';
+import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
 
 const useStyles = makeStyles(() => createStyles({
     background: {
@@ -86,8 +91,8 @@ const useStyles = makeStyles(() => createStyles({
 
 const SingIn = (props: any) => {
 
-    const [userName, setUserName] = useState('adm_dev')
-    const [password, setPassword] = useState('Pedid0e#')
+    const [userName, setUserName] = useState('jljustemartin@gmail.com')
+    const [password, setPassword] = useState('Compaq7500')
     const [validationErrors, setValidationErrors] = useState({} as any)
 
 
@@ -95,6 +100,7 @@ const SingIn = (props: any) => {
     const classes = useStyles();
     const dispatch = useDispatch();
     const traductor = useTraductor();
+    const reduxErrorCallback = useReduxErrorCallback();
 
     const useCase = new UnitOfWorkUseCase().getLoginUseCase();
     const tokenService: ITokenService = new UnitOfWorkService().getTokenService();
@@ -131,9 +137,18 @@ const SingIn = (props: any) => {
         login.password = password;
         useCase.login(login).then((response: IServerResponse<string>) => {
 
-            router.push('/home');
+            const userId: string = tokenService.getClaimFromToken("userId");
+            const storedUserId: string = store.getState().userId;
             dispatch(userActions((error) => { }).saveUserId(tokenService.getClaimFromToken("userId")));
-
+            if (userId !== storedUserId) {
+                dispatch(cartActions(reduxErrorCallback).cleanCart);
+                dispatch(centerActions(() => { }).getCenterProducts(null));
+                dispatch(centerActions(() => { }).saveCenter(null));
+                dispatch(catalogActions(() => { }).saveCatalog(null)).then(() => {
+                    router.push('/home');
+                });
+            } else
+                router.push('/home');
 
         }).catch((error) => {
 
@@ -207,7 +222,7 @@ const SingIn = (props: any) => {
                             onChange={e => setPassword(e.target.value)}
 
                         />
-                        <Link href="" variant="body2" onClick={(e: any) => router.push('/recoverpassword')} className={classes.recoverPassword}>
+                        <Link variant="body2" onClick={(e: any) => router.push('/recoverpassword')} className={classes.recoverPassword}>
                             {traductor("recordar_password", { onlyfirst: true })}
                         </Link>
                         <Button
@@ -224,7 +239,7 @@ const SingIn = (props: any) => {
                             <Grid item>
                                 {traductor("nuevo_usuario", { capitalize: true })}
                                 {' '}
-                                <Link href="" variant="body2" onClick={(e: any) => router.push('/validatecenter')} className={classes.signup}>
+                                <Link variant="body2" onClick={(e: any) => router.push('/validatecenter')} className={classes.signup}>
                                     {traductor("crear_cuenta", { onlyfirst: true })}
                                 </Link>
                             </Grid>

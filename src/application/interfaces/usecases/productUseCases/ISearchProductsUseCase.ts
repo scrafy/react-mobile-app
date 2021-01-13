@@ -2,5 +2,5 @@ import { IServerResponse,  ISearchProduct, IProduct } from "../../../../domain/i
 
 export interface ISearchProductsUseCase {
    
-    searchProducts(search: ISearchProduct, page: number, token?:string): Promise<IServerResponse<Array<IProduct>>>
+    searchProducts(search: ISearchProduct, page: number, token?:string, recordsByPage?:number): Promise<IServerResponse<Array<IProduct>>>
 }

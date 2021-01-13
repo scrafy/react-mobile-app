@@ -77,7 +77,6 @@ const ProductList = (props: any) => {
     const checkProductCart = useCheckProductCart();
     const router = useRouter();
 
-
     //#endregion
 
 

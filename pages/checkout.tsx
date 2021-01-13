@@ -134,7 +134,6 @@ const CheckOut = (props: any) => {
 
     //#endregion
 
-
     //#region METHODS
 
 
@@ -198,9 +197,9 @@ const CheckOut = (props: any) => {
 
         });
 
-        GenerateOrder();
-        if (supplier !== null && center !== null && productsCart.length > 0)
 
+        if (supplier !== null && center !== null && productsCart.length > 0) {
+            GenerateOrder();
             useCase.getProductsFromFavoriteListUseCase().getProductsFromFavoriteList(center.id).then((resp: IServerResponse<IProduct[]>) => {
 
                 if (resp.ServerData?.Data && resp.ServerData?.Data.length > 0) {
@@ -244,7 +243,7 @@ const CheckOut = (props: any) => {
                     })
                 )
             })
-
+        }
         else
             router.push('/home');
 
@@ -413,7 +412,6 @@ const CheckOut = (props: any) => {
                 }
             })
         )
-
 
     }
 

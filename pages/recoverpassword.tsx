@@ -101,7 +101,7 @@ const RecoverPassword = (props: any) => {
             )
 
         }).catch(error => {
-
+            setEmail('')
             ErrorFormManager(error, (errorMessage: string, validationErrors?: any) => {
 
                 if (validationErrors)
@@ -139,7 +139,7 @@ const RecoverPassword = (props: any) => {
                         component="h1"
                         variant="h5"
                     >
-                        {traductor('cambiar_password', { uppercase: true })}
+                        {traductor('recordar_password', { uppercase: true })}
                     </Typography>
                     <Container component="main" maxWidth="xs">
 

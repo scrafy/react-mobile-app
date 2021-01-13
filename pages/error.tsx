@@ -6,7 +6,7 @@ import {
     Typography,
     Button,
 } from '@material-ui/core';
-import { Check } from '@material-ui/icons'
+import ErrorIcon from '@material-ui/icons/Error';
 import { useTraductor } from 'src/hooks/Traductor';
 import { useRouter } from 'next/router';
 import showNotification from "src/presentation/components/notifications";
@@ -62,7 +62,7 @@ const Error = ({ errorMessage }) => {
             >
                 <Grid item>
                     <Avatar className={classes.avatar}>
-                        <Check className={classes.icon} />
+                        <ErrorIcon className={classes.icon} />
                     </Avatar>
                 </Grid>
                 <Grid item className={classes.text}>

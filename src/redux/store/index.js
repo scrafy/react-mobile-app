@@ -9,7 +9,6 @@ import getLanguage from "src/presentation/helpers/GetLanguage";
 
 let store;
 
-
 const initialState = {
   languaje: getLanguage(),
 };
@@ -36,7 +35,7 @@ const createNoopStorage = () => {
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["cart", "centers", "catalogs", "providers"],
+  whitelist: ["cart", "centers", "catalogs", "providers", "userId", ]
 };
 
 const persistedReducer = persistReducer(persistConfig, reducers);
@@ -50,7 +49,6 @@ function makeStore() {
 }
 
 export default store = makeStore();
-
 
 export const persistor = persistStore(store, {}, () => persistor.persist());
 

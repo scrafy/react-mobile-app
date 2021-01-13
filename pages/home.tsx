@@ -19,7 +19,6 @@ import SimpleSelect from 'src/presentation/components/dropdowns/SimpleSelect';
 import { ITokenService } from 'src/infraestructure/interfaces';
 import { useCheckTokenInvalid } from 'src/hooks/CheckTokenSession';
 import notify from 'src/redux/notifications/actions';
-import cartActions from 'src/redux/cart/actions';
 import { useRouter } from 'next/router';
 import {
     AddCircle,
@@ -32,7 +31,6 @@ import PermIdentityIcon from '@material-ui/icons/PermIdentity';
 import _ from 'lodash';
 import { useTraductor } from 'src/hooks/Traductor';
 import useReduxErrorCallback from 'src/hooks/ReduxErrorCallback';
-
 
 
 
@@ -116,7 +114,7 @@ const Home = (props: any) => {
             router.push("/");
 
         });
-       
+
         dispatch(centerActions(reduxErrorCallback).getCenters);
         dispatch(getProviders(reduxErrorCallback).getProviders);
         setCenterSelected(state.centers.selectedCenter);
@@ -134,17 +132,6 @@ const Home = (props: any) => {
     }, [])
 
 
-    useEffect(() => {
-
-        if (centerInCart)
-            if (centers.length > 0)
-
-                if (!_.some(centers, ((c: ICenter) => c.id === centerInCart.id)))
-                    dispatch(cartActions(reduxErrorCallback).cleanCart);
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [centers])
-
     const onCenterSelected = (event: any) => {
 
         setCatalogSelected(null);
@@ -154,13 +141,14 @@ const Home = (props: any) => {
             const selectedCenter: ICenter | undefined = centers.find((center: ICenter) => center.id === parseInt(event.target.value));
             if (selectedCenter) {
 
+                dispatch(centerActions(reduxErrorCallback).getCenterProducts(selectedCenter.id));
                 dispatch(centerActions(reduxErrorCallback).saveCenter(selectedCenter));
                 setCenterSelected(selectedCenter);
             }
             dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(parseInt(event.target.value)));
         }
         else {
-
+            dispatch(centerActions(reduxErrorCallback).getCenterProducts(null));
             dispatch(centerActions(reduxErrorCallback).saveCenter(null));
             dispatch(catalogActions(reduxErrorCallback).getCenterCatalogs(null));
             setCenterSelected(null);
@@ -219,7 +207,7 @@ const Home = (props: any) => {
 
         if (searchValue !== '')
 
-            router.push({ pathname: '/productlist', query: { isGeneralSearch:true, search: searchValue, centerId: centerSelected?.id } });
+            router.push({ pathname: '/productlist', query: { isGeneralSearch: true, search: searchValue, centerId: centerSelected?.id } });
         else
             dispatch(
                 notify.showNotification({

@@ -7,6 +7,8 @@ const jwt = require('jsonwebtoken');
 
 export class TokenService implements ITokenService {
 
+
+
     getPayload = (): any | undefined => {
 
         let payload;
@@ -73,12 +75,16 @@ export class TokenService implements ITokenService {
 
     }
 
-    getClaimFromToken = (claim: string): string | undefined => {
+    getClaimFromToken = (claim: string, token?: string): string | undefined => {
 
         try {
 
             let payload;
-            payload = jwt.verify(this.readToken(), process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 });
+            if (token)
+                payload = jwt.verify(token, process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 });
+            else
+                payload = jwt.verify(this.readToken(), process.env.REACT_APP_JWT_SECRET_KEY, { clockTolerance: 60 });
+
             const value = payload[claim]
             if (!value)
                 throw new JwtTokenError(ErrorCode.JWT_TOKEN_INVALID, `It was not possible to get ${claim} claim from token`);
@@ -91,5 +97,6 @@ export class TokenService implements ITokenService {
         }
 
     }
+
 
 }

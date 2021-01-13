@@ -2,7 +2,7 @@ import { JwtTokenError } from "../../domain/exceptions";
 import { IHttpClient, ITokenService } from "../interfaces";
 import { ErrorCode } from "../../domain/enums";
 const axios = require('axios');
-const fetch = require('sync-fetch')
+
 
 export class HttpClient implements IHttpClient {
 

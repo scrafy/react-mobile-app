@@ -28,7 +28,9 @@ const useStyles = makeStyles({
     },
     text: {
         color: 'black',
+        margin: '0 2rem',
         marginTop: '4rem'
+        
     },
     button: {
         marginTop: '3rem',
@@ -66,7 +68,7 @@ const Error = ({ errorMessage }) => {
                     </Avatar>
                 </Grid>
                 <Grid item className={classes.text}>
-                    <Typography variant="h4" component="p">
+                    <Typography variant="h5">
                         {errorMessage}
                     </Typography>
                 </Grid>

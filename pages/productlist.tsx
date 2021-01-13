@@ -138,7 +138,7 @@ const ProductList = (props: any) => {
     //#region USE_SELECTORS
 
     const catalogSelected: ICatalog | null = useSelector((state: any) => {
-        
+
         if (props.isgeneralSearch)
             return null
         else
@@ -766,6 +766,7 @@ export async function getServerSideProps(ctx: any) {
 
 
     try {
+
         const useCase: UnitOfWorkUseCase = new UnitOfWorkUseCase();
         let products: IServerResponse<IProduct[]>;
         let categories: IServerResponse<ICategory[]>;
@@ -790,7 +791,6 @@ export async function getServerSideProps(ctx: any) {
         search.centerId = query.centerId;
         search.nameProduct = query.search;
         products = await useCase.getSearchProductUseCase().searchProducts(search, 1, req.cookies["session"]);
-
         if (isgeneralSearch)
             categories = await useCase.getCategoriesByCentreUseCase().getCategoriesByCentre(search.centerId, req.cookies["session"]);
         else

@@ -4,6 +4,7 @@ import { UnitOfWorkUseCase } from 'src/application/unitsofwork';
 import { IProduct, ICenter, ISeller, IProductBelongToCenter, IServerResponse } from 'src/domain/interfaces';
 import { ProductBelongToCenter } from 'src/domain/models';
 import { useTraductor } from './Traductor';
+import store from "src/redux/store";
 
 enum TypeMessageCheckProduct {
 
@@ -25,16 +26,29 @@ interface ICheckProductCallback {
 
 const productBelongsToCenter = async (product: IProduct, center: ICenter): Promise<boolean> => {
 
-    let data: IProductBelongToCenter = new ProductBelongToCenter();
-
-    data.centerId = center.id;
-    data.price = product.price;
-    data.productId = product.id;
-
     try {
 
-        const resp: IServerResponse<string> = await new UnitOfWorkUseCase().getProductBelongToCenterUseCase().checkProductBelongToCenter(data);
-        return resp.ServerData?.Data === "True" ? true : false;
+        const products: IProduct[] = store.getState().centers.centerProducts;
+        if (products && products.length > 0) {
+
+            if (products.find((p: IProduct) => {
+
+                return p.id === product.id && p.price === product.price
+            }))
+                return true;
+            else
+                return false;
+
+        } else {
+
+            let data: IProductBelongToCenter = new ProductBelongToCenter();
+            data.centerId = center.id;
+            data.price = product.price;
+            data.productId = product.id;
+            const resp: IServerResponse<string> = await new UnitOfWorkUseCase().getProductBelongToCenterUseCase().checkProductBelongToCenter(data);
+            return resp.ServerData?.Data === "True" ? true : false;
+        }
+
     }
     catch (error) {
         throw error;
@@ -69,10 +83,10 @@ const useCheckProductCart = () => {
 
             const check: boolean = await productBelongsToCenter(product, center);
             if (check) {
-                
+
                 if (centerInCart && centerInCart.id !== centerSelected.id) {
                     messageCallback({
-                        message: (traductor('mensaje3', {onlyfirst:true}) as string).replace('{0}', centerInCart.name).replace('{1}', centerSelected.name),
+                        message: (traductor('mensaje3', { onlyfirst: true }) as string).replace('{0}', centerInCart.name).replace('{1}', centerSelected.name),
                         typeMessage: TypeMessageCheckProduct.DIFFERENT_CENTERS,
                         product
                     });

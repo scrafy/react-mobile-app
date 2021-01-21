@@ -5,27 +5,22 @@ import { IProduct, ISearchProduct, IServerResponse } from 'src/domain/interfaces
 
 const searchProducts = async (req: NextApiRequest, res: NextApiResponse) => {
 
-
+    
     if (req.method === 'POST' && req.body) {
 
         try {
-            const search: ISearchProduct = req.body;
+           
+            const search: ISearchProduct = req.body.search;
             const useCase: UnitOfWorkUseCase = new UnitOfWorkUseCase();
-            let products: IProduct[];
             let resp: IServerResponse<IProduct[]>;
             try {
 
-                if (!req.cookies["session"])
+                if (!req.body.session)
                     throw new Error("Invalid token");
 
-                resp = await useCase.getSearchProductUseCase().searchProducts(search, 1, req.cookies["session"]);
-                if (resp.ServerData?.Data && resp.ServerData?.Data.length > 0)
-                    products = resp.ServerData?.Data;
-                else
-                    products = [];
-
+                resp = await useCase.getSearchProductUseCase().searchProducts(search, 1, req.body.session);
                 res.statusCode = 200;
-                res.json(products);
+                res.json(resp);
             }
             catch (error) {
 

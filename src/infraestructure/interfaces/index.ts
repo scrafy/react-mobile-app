@@ -9,10 +9,9 @@ import { ISellerRepository } from "./repositories/ISellerRepository";
 import { IUserRepository } from "./repositories/IUserRepository";
 import { ICategoryRepository } from "./repositories/ICategoryRepository";
 import { IRouteRepository } from "./repositories/IRouteRepository";
-import IState from "./IState";
-import ICart from "./ICart";
 
-export type {    
+export type {
+
     IHttpClient,
     ICategoryRepository,
     ITokenService,
@@ -23,7 +22,5 @@ export type {
     IProductRepository,
     ISellerRepository,
     IUserRepository,
-    IRouteRepository,
-    IState,
-    ICart    
+    IRouteRepository
 }

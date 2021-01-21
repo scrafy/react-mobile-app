@@ -24,8 +24,7 @@ export default (state = initialState, action: any) => {
             return { ...state, products: [] };
         case Actions.CLEAN_CART:
             return { products: [], center: null, supplier: null };
-        case Actions.SAVE_CART:
-            return action.payload;
+      
         default:
             return state;
     }

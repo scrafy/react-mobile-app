@@ -2,7 +2,6 @@ import { ICenter, IProduct, ISeller } from "src/domain/interfaces";
 import Actions from "./enumActions";
 import lodash from 'lodash';
 import store from 'src/redux/store/index';
-import { ICart } from "src/infraestructure/interfaces";
 
 
 export default (errorCallback: (error: string) => void): any => {
@@ -121,21 +120,7 @@ export default (errorCallback: (error: string) => void): any => {
             catch (error) {
                 errorCallback(error.message);
             }
-        },
-
-        saveCart: (cart: ICart | null) => async (dispatch:any) => {
-
-            try {
-                dispatch({
-                    type: Actions.SAVE_CART,
-                    payload: cart || { products: [], center: null, supplier: null }
-                })
-            }
-            catch (error) {
-                errorCallback(error.message);
-            }
         }
-
     }
 
 }
